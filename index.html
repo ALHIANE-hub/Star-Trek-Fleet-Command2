@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Star Trek Fleet Command — Choose Your Officer</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+  <style>
+    /* ═══════════════════════════
+       DESIGN SYSTEM
+    ═══════════════════════════ */
+    :root {
+      --fed:   #00c8ff;
+      --kling: #ff4422;
+      --rom:   #22ffaa;
+      --gold:  #f0c040;
+      --dark:  #02040e;
+      --font-title: 'Orbitron', sans-serif;
+      --font-body:  'Exo 2', sans-serif;
+      --accent: var(--fed);
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    html, body {
+      width:100vw; height:100vh;
+      background:var(--dark);
+      font-family:var(--font-body);
+      overflow:hidden;
+      color:#fff;
+      user-select:none;
+    }
+
+    /* ═══════════════════════════
+       STAR CANVAS
+    ═══════════════════════════ */
+    #stars {
+      position:fixed; inset:0; z-index:0;
+      pointer-events:none;
+    }
+
+    /* ═══════════════════════════
+       VIDEO BG
+    ═══════════════════════════ */
+    .vbg {
+      position:fixed; inset:0; z-index:1;
+      pointer-events:none;
+    }
+    #bgVideo {
+      width:100%; height:100%;
+      object-fit:cover; opacity:0.15;
+      filter:saturate(0.3) hue-rotate(180deg);
+    }
+    .vbg-over {
+      position:absolute; inset:0;
+      background:linear-gradient(180deg,
+        rgba(2,4,14,0.6) 0%,
+        rgba(2,4,14,0.25) 40%,
+        rgba(2,4,14,0.6) 70%,
+        rgba(2,4,14,0.98) 100%);
+    }
+
+    /* ═══════════════════════════
+       SCANLINES
+    ═══════════════════════════ */
+    .scanlines {
+      position:fixed; inset:0; z-index:2;
+      pointer-events:none;
+      background:repeating-linear-gradient(
+        0deg, transparent, transparent 3px,
+        rgba(0,180,255,0.018) 3px, rgba(0,180,255,0.018) 4px
+      );
+    }
+
+    /* ═══════════════════════════
+       HEADER
+    ═══════════════════════════ */
+    .hdr {
+      position:fixed; top:0; left:0; right:0;
+      z-index:300; height:56px;
+      display:flex; align-items:center;
+      justify-content:space-between;
+      padding:0 32px;
+      background:rgba(2,4,14,0.92);
+      backdrop-filter:blur(18px);
+      border-bottom:1px solid rgba(0,200,255,0.14);
+    }
+    .hdr::before, .hdr::after {
+      content:''; position:absolute;
+      width:14px; height:14px;
+    }
+    .hdr::before { top:0; left:0; border-top:2px solid var(--fed); border-left:2px solid var(--fed); }
+    .hdr::after  { top:0; right:0; border-top:2px solid var(--fed); border-right:2px solid var(--fed); }
+
+    .hdr-left { display:flex; align-items:center; gap:14px; }
+
+    .hdr-logo {
+      height:38px; object-fit:contain;
+      filter:drop-shadow(0 0 10px rgba(0,200,255,0.45));
+    }
+
+    .pc-badge {
+      display:flex; align-items:center; gap:5px;
+      padding:3px 9px;
+      border:1px solid rgba(0,200,255,0.25);
+      border-radius:2px;
+      font-family:var(--font-title);
+      font-size:0.5rem; font-weight:400;
+      letter-spacing:2px; text-transform:uppercase;
+      color:rgba(0,200,255,0.5);
+    }
+    .pc-badge svg { width:11px; height:11px; fill:rgba(0,200,255,0.5); }
+
+    .hdr-cta {
+      position:relative;
+      padding:8px 22px;
+      background:transparent;
+      border:1px solid var(--fed);
+      border-radius:2px;
+      font-family:var(--font-title);
+      font-size:0.62rem; font-weight:700;
+      letter-spacing:3px; text-transform:uppercase;
+      color:var(--fed); cursor:pointer; overflow:hidden;
+      transition:color 0.3s, box-shadow 0.3s;
+      box-shadow:0 0 12px rgba(0,200,255,0.2);
+    }
+    .hdr-cta::before {
+      content:''; position:absolute; inset:0;
+      background:var(--fed);
+      transform:scaleX(0); transform-origin:left;
+      transition:transform 0.3s ease; z-index:-1;
+    }
+    .hdr-cta:hover::before { transform:scaleX(1); }
+    .hdr-cta:hover { color:#000; box-shadow:0 0 28px rgba(0,200,255,0.6); }
+
+    /* ═══════════════════════════
+       PAGE — 3-ROW GRID
+       row1: header spacer
+       row2: main content (left+right)
+       row3: thumbnail strip
+    ═══════════════════════════ */
+    .page {
+      position:relative; z-index:10;
+      height:100vh;
+      display:grid;
+      grid-template-rows:56px 1fr auto;
+      grid-template-columns:1fr 1fr;
+      grid-template-areas:
+        "hsp  hsp"
+        "left right"
+        "strip strip";
+    }
+    .hsp { grid-area:hsp; }
+
+    /* ═══════════════════════════
+       LEFT COLUMN
+    ═══════════════════════════ */
+    .left {
+      grid-area:left;
+      display:flex; flex-direction:column;
+      justify-content:center;
+      padding:16px 28px 16px 44px;
+      gap:12px;
+    }
+
+    .hud-status {
+      display:flex; align-items:center; gap:8px;
+      animation:fadeLeft .7s ease .1s both;
+    }
+    .hud-dot {
+      width:6px; height:6px; border-radius:50%;
+      background:var(--fed); box-shadow:0 0 8px var(--fed);
+      animation:blink 1.4s ease infinite;
+    }
+    @keyframes blink {
+      0%,100%{opacity:1;} 50%{opacity:0.2;}
+    }
+    .hud-label {
+      font-family:var(--font-title);
+      font-size:0.52rem; letter-spacing:4px;
+      text-transform:uppercase; color:rgba(0,200,255,0.5);
+    }
+
+    .title-main {
+      font-family:var(--font-title);
+      font-size:clamp(1.5rem, 3vw, 2.8rem);
+      font-weight:900; line-height:1.0;
+      letter-spacing:1px; color:#fff;
+      text-shadow:0 0 30px rgba(0,200,255,0.3);
+      animation:fadeLeft .7s ease .15s both;
+    }
+    .title-main em {
+      font-style:normal; color:var(--fed);
+      text-shadow:0 0 20px rgba(0,200,255,0.8);
+    }
+
+    .title-sub {
+      font-size:clamp(.78rem, 1.3vw, .95rem);
+      font-weight:300; letter-spacing:2px;
+      color:rgba(255,255,255,.4); text-transform:uppercase;
+      animation:fadeLeft .7s ease .2s both;
+    }
+
+    /* Faction divider */
+    .faction-divider {
+      display:flex; align-items:center; gap:10px;
+      animation:fadeLeft .7s ease .25s both;
+    }
+    .faction-divider::before {
+      content:''; width:24px; height:1px;
+      background:linear-gradient(to right, var(--fed), transparent);
+    }
+    .faction-divider-txt {
+      font-family:var(--font-title);
+      font-size:0.48rem; letter-spacing:3px;
+      text-transform:uppercase; color:rgba(0,200,255,.4);
+    }
+    .faction-divider::after {
+      content:''; flex:1; height:1px;
+      background:linear-gradient(to right, rgba(0,200,255,.15), transparent);
+    }
+
+    /* Selected officer info panel */
+    .officer-panel {
+      padding:14px 16px;
+      background:rgba(0,200,255,.04);
+      border:1px solid rgba(0,200,255,.1);
+      border-left:2px solid var(--accent);
+      border-radius:0 4px 4px 0;
+      transition:border-color .4s ease;
+      animation:fadeLeft .7s ease .3s both;
+      min-height:90px;
+    }
+
+    .officer-faction {
+      font-family:var(--font-title);
+      font-size:0.52rem; letter-spacing:3px;
+      text-transform:uppercase;
+      color:var(--accent);
+      margin-bottom:4px;
+      transition:color .4s ease;
+    }
+
+    .officer-name {
+      font-family:var(--font-title);
+      font-size:clamp(1rem, 2vw, 1.6rem);
+      font-weight:900; color:#fff; line-height:1.1;
+      letter-spacing:1px;
+      text-shadow:0 0 20px var(--accent);
+      transition:text-shadow .4s ease;
+    }
+
+    .officer-desc {
+      font-size:.78rem; font-weight:300;
+      font-style:italic; letter-spacing:.5px;
+      color:rgba(255,255,255,.5);
+      margin-top:5px; line-height:1.4;
+    }
+
+    /* Stats row */
+    .officer-stats {
+      display:flex; gap:14px; margin-top:8px;
+    }
+    .stat-chip {
+      display:flex; flex-direction:column;
+      align-items:center; gap:1px;
+      padding:5px 10px;
+      background:rgba(0,200,255,.05);
+      border:1px solid rgba(0,200,255,.12);
+      border-radius:2px;
+    }
+    .stat-chip-val {
+      font-family:var(--font-title);
+      font-size:.7rem; font-weight:700;
+      color:var(--accent); transition:color .4s;
+    }
+    .stat-chip-lbl {
+      font-size:.5rem; letter-spacing:2px;
+      text-transform:uppercase; color:rgba(255,255,255,.35);
+    }
+
+    /* PC badge bottom */
+    .pc-warn {
+      display:flex; align-items:center; gap:7px;
+      padding:6px 12px;
+      background:rgba(0,200,255,.04);
+      border:1px solid rgba(0,200,255,.15);
+      border-radius:2px;
+      font-family:var(--font-title);
+      font-size:.5rem; letter-spacing:2px;
+      text-transform:uppercase; color:rgba(0,200,255,.55);
+      animation:fadeLeft .7s ease .45s both;
+    }
+    .pc-warn svg { width:12px; height:12px; fill:rgba(0,200,255,.55); }
+
+    /* MAIN CTA */
+    .main-cta {
+      position:relative;
+      padding:14px 36px;
+      background:transparent;
+      border:1px solid var(--accent);
+      border-radius:2px;
+      font-family:var(--font-title);
+      font-size:clamp(.7rem, 1.3vw, .9rem);
+      font-weight:700; letter-spacing:3px;
+      text-transform:uppercase; color:#fff;
+      cursor:pointer; overflow:hidden;
+      transition:color .3s, box-shadow .3s, transform .2s;
+      animation:ctaPulse 2.5s ease infinite, fadeLeft .7s ease .4s both;
+      white-space:nowrap;
+    }
+    .main-cta::before {
+      content:''; position:absolute; inset:0;
+      background:var(--fed);
+      transform:scaleX(0) skewX(-4deg);
+      transform-origin:left;
+      transition:transform .35s ease; z-index:0;
+    }
+    .main-cta::after {
+      content:''; position:absolute;
+      top:0; left:-100%; width:40%; height:100%;
+      background:linear-gradient(105deg,
+        transparent 20%, rgba(0,200,255,.4) 50%, transparent 80%);
+      animation:shimmer 3s ease-in-out infinite; z-index:1;
+    }
+    .main-cta span { position:relative; z-index:2; }
+    .main-cta:hover::before { transform:scaleX(1) skewX(0); }
+    .main-cta:hover {
+      color:#000;
+      box-shadow:0 0 60px rgba(0,200,255,.8), 0 0 120px rgba(0,200,255,.3);
+      transform:scale(1.03) translateY(-1px);
+    }
+    @keyframes ctaPulse {
+      0%,100%{box-shadow:0 0 14px rgba(0,200,255,.3);}
+      45%    {box-shadow:0 0 36px rgba(0,200,255,.7), inset 0 0 16px rgba(0,200,255,.1);}
+    }
+    @keyframes shimmer {
+      0%{left:-100%;} 55%{left:140%;} 100%{left:140%;}
+    }
+
+    /* ═══════════════════════════
+       RIGHT COLUMN — Spotlight
+    ═══════════════════════════ */
+    .right {
+      grid-area:right;
+      display:flex; align-items:center; justify-content:center;
+      padding:12px 36px 12px 12px;
+      animation:fadeRight .9s ease .2s both;
+    }
+
+    .spotlight {
+      position:relative;
+      width:100%; max-width:420px;
+      aspect-ratio:3/4;
+    }
+
+    /* Hexagonal clip on image */
+    .spotlight-img-wrap {
+      width:100%; height:100%;
+      clip-path:polygon(
+        12px 0%, calc(100% - 12px) 0%,
+        100% 12px, 100% calc(100% - 28px),
+        calc(100% - 28px) 100%,
+        28px 100%, 0% calc(100% - 12px), 0% 12px
+      );
+      overflow:hidden;
+      position:relative;
+    }
+
+    .spotlight-img {
+      width:100%; height:100%;
+      object-fit:cover; object-position:top center;
+      display:block;
+      transition:opacity .5s ease, transform .5s ease;
+      filter:saturate(.9) brightness(.9);
+    }
+    .spotlight-img.fade-out { opacity:0; transform:scale(1.04); }
+
+    /* Inner gradient */
+    .spotlight-inner {
+      position:absolute; inset:0; z-index:2; pointer-events:none;
+      background:linear-gradient(
+        to bottom, transparent 40%, rgba(2,4,14,.7) 100%
+      );
+    }
+
+    /* Scan line */
+    .spotlight-scan {
+      position:absolute; top:0; left:0; right:0;
+      height:2px; z-index:3;
+      background:linear-gradient(to right,
+        transparent, rgba(0,200,255,.7), transparent);
+      animation:scanDown 3.5s ease-in-out infinite;
+    }
+    @keyframes scanDown {
+      0%  {top:0%; opacity:0;}
+      5%  {opacity:1;}
+      95% {opacity:.5;}
+      100%{top:100%; opacity:0;}
+    }
+
+    /* HUD corners on spotlight */
+    .sp-corner {
+      position:absolute; width:18px; height:18px; z-index:4;
+    }
+    .sp-corner.tl{top:-2px;left:-2px; border-top:2px solid var(--accent); border-left:2px solid var(--accent); transition:border-color .4s;}
+    .sp-corner.tr{top:-2px;right:-2px; border-top:2px solid var(--accent); border-right:2px solid var(--accent); transition:border-color .4s;}
+    .sp-corner.bl{bottom:-2px;left:-2px; border-bottom:2px solid var(--accent); border-left:2px solid var(--accent); transition:border-color .4s;}
+    .sp-corner.br{bottom:-2px;right:-2px; border-bottom:2px solid var(--accent); border-right:2px solid var(--accent); transition:border-color .4s;}
+
+    /* Side glow bars */
+    .sp-bar-l, .sp-bar-r {
+      position:absolute; top:15%; bottom:15%;
+      width:2px; z-index:4;
+      transition:background .4s, box-shadow .4s;
+    }
+    .sp-bar-l {
+      left:-7px;
+      background:linear-gradient(to bottom, transparent, var(--accent), transparent);
+      box-shadow:0 0 10px var(--accent);
+    }
+    .sp-bar-r {
+      right:-7px;
+      background:linear-gradient(to bottom, transparent, rgba(0,200,255,.3), transparent);
+    }
+
+    /* Bottom glow */
+    .sp-glow {
+      position:absolute; bottom:-4px; left:10%; right:10%;
+      height:1px; z-index:4;
+      background:linear-gradient(to right, transparent, var(--accent), transparent);
+      box-shadow:0 0 20px var(--accent);
+      transition:background .4s, box-shadow .4s;
+    }
+
+    /* HUD data tags */
+    .sp-tag {
+      position:absolute; z-index:5;
+      font-family:var(--font-title);
+      font-size:.46rem; letter-spacing:2px;
+      text-transform:uppercase;
+      color:rgba(0,200,255,.5); white-space:nowrap;
+    }
+    .sp-tag::before {
+      content:'';
+      display:inline-block; width:4px; height:4px;
+      border-radius:50%; background:var(--fed);
+      box-shadow:0 0 5px var(--fed);
+      margin-right:4px; vertical-align:middle;
+      animation:blink 1.8s ease infinite;
+    }
+    .sp-tag.t1{top:8px; left:12px;}
+    .sp-tag.t2{top:8px; right:12px; text-align:right;}
+
+    /* ═══════════════════════════
+       THUMBNAIL STRIP
+    ═══════════════════════════ */
+    .strip-wrap {
+      grid-area:strip;
+      position:relative;
+      padding:10px 40px 14px;
+      background:rgba(2,4,14,.95);
+      border-top:1px solid rgba(0,200,255,.1);
+    }
+    .strip-wrap::before, .strip-wrap::after {
+      content:''; position:absolute;
+      top:0; width:80px; height:100%;
+      pointer-events:none; z-index:5;
+    }
+    .strip-wrap::before {
+      left:0;
+      background:linear-gradient(to right, rgba(2,4,14,1), transparent);
+    }
+    .strip-wrap::after {
+      right:0;
+      background:linear-gradient(to left, rgba(2,4,14,1), transparent);
+    }
+
+    .strip-label {
+      font-family:var(--font-title);
+      font-size:.48rem; letter-spacing:4px;
+      text-transform:uppercase; color:rgba(0,200,255,.35);
+      margin-bottom:7px; text-align:center;
+    }
+
+    .strip {
+      display:flex; gap:8px;
+      justify-content:center;
+      flex-wrap:nowrap;
+      overflow:hidden;
+    }
+
+    .thumb {
+      flex-shrink:0;
+      width:58px; height:72px;
+      position:relative;
+      cursor:pointer;
+      border-radius:3px;
+      overflow:hidden;
+      border:1px solid rgba(0,200,255,.12);
+      transition:transform .3s, border-color .3s, box-shadow .3s;
+    }
+    .thumb img {
+      width:100%; height:100%;
+      object-fit:cover; object-position:top center;
+      display:block;
+      filter:saturate(.5) brightness(.6);
+      transition:filter .3s;
+    }
+    .thumb:hover img, .thumb.active img {
+      filter:saturate(1) brightness(1);
+    }
+    .thumb:hover, .thumb.active {
+      transform:translateY(-5px) scale(1.08);
+      border-color:var(--accent);
+      box-shadow:0 0 14px var(--accent), 0 4px 20px rgba(0,0,0,.6);
+      z-index:10;
+    }
+    .thumb.active {
+      transform:translateY(-8px) scale(1.12);
+    }
+
+    /* Faction color bar at bottom of thumb */
+    .thumb-bar {
+      position:absolute; bottom:0; left:0; right:0;
+      height:2px;
+    }
+    .thumb[data-f="fed"]   .thumb-bar { background:var(--fed); }
+    .thumb[data-f="kling"] .thumb-bar { background:var(--kling); }
+    .thumb[data-f="rom"]   .thumb-bar { background:var(--rom); }
+
+    /* Name tooltip on hover */
+    .thumb-name {
+      position:absolute; bottom:4px; left:0; right:0;
+      text-align:center;
+      font-family:var(--font-title);
+      font-size:.38rem; font-weight:700;
+      letter-spacing:1px; text-transform:uppercase;
+      color:#fff; text-shadow:0 0 4px #000;
+      opacity:0; transition:opacity .2s;
+      padding:0 2px; line-height:1.2;
+    }
+    .thumb:hover .thumb-name,
+    .thumb.active .thumb-name { opacity:1; }
+
+    /* Progress bar */
+    .progress-bar-wrap {
+      width:200px; height:2px;
+      background:rgba(0,200,255,.12);
+      border-radius:2px; margin:6px auto 0;
+    }
+    .progress-bar {
+      height:100%; border-radius:2px;
+      background:linear-gradient(to right, transparent, var(--fed));
+      transition:width linear;
+    }
+
+    /* ═══════════════════════════
+       ANIMATIONS
+    ═══════════════════════════ */
+    @keyframes fadeLeft {
+      from{opacity:0;transform:translateX(-20px);}
+      to  {opacity:1;transform:translateX(0);}
+    }
+    @keyframes fadeRight {
+      from{opacity:0;transform:translateX(20px);}
+      to  {opacity:1;transform:translateX(0);}
+    }
+
+    /* ═══════════════════════════
+       MOBILE FALLBACK
+    ═══════════════════════════ */
+    @media(max-width:780px){
+      html,body{overflow-y:auto;}
+      .page{
+        grid-template-columns:1fr;
+        grid-template-rows:56px auto auto auto;
+        grid-template-areas:"hsp" "right" "left" "strip";
+        height:auto;
+      }
+      .left{padding:16px 20px;}
+      .right{padding:16px 20px;}
+      .spotlight{max-width:320px;}
+      .thumb{width:48px;height:60px;}
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="stars"></canvas>
+
+<div class="vbg">
+  <video autoplay muted loop playsinline id="bgVideo">
+    <source src="https://startrikcommand.gamezof.com/video-bg.mp4" type="video/mp4">
+  </video>
+  <div class="vbg-over"></div>
+</div>
+
+<div class="scanlines"></div>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hdr-left">
+    <img src="https://startrikcommand.gamezof.com/logo.webp"
+         alt="Star Trek Fleet Command" class="hdr-logo"
+         onerror="this.style.display='none'">
+    <div class="pc-badge">
+      <svg viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+      PC Desktop Only
+    </div>
+  </div>
+  <button class="hdr-cta" id="hdrCta">▶ PLAY FREE</button>
+</header>
+
+<!-- PAGE -->
+<div class="page">
+  <div class="hsp"></div>
+
+  <!-- LEFT -->
+  <div class="left">
+    <div class="hud-status">
+      <div class="hud-dot"></div>
+      <span class="hud-label">Officer Selection — Starfleet Command</span>
+    </div>
+
+    <h1 class="title-main">
+      CHOOSE YOUR<br><em>OFFICER</em>
+    </h1>
+
+    <p class="title-sub">19 Legendary Characters. One Galaxy. Your Command.</p>
+
+    <div class="faction-divider">
+      <span class="faction-divider-txt">Active Officer Profile</span>
+    </div>
+
+    <!-- Dynamic officer panel -->
+    <div class="officer-panel" id="officerPanel">
+      <div class="officer-faction" id="officerFaction">FEDERATION</div>
+      <div class="officer-name" id="officerName">JAMES T. KIRK</div>
+      <div class="officer-desc" id="officerDesc">The legendary captain of the USS Enterprise. Unmatched in tactical genius and inspiring leadership under fire.</div>
+      <div class="officer-stats">
+        <div class="stat-chip">
+          <span class="stat-chip-val" id="stat1Val">★★★★★</span>
+          <span class="stat-chip-lbl">Rating</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-chip-val" id="stat2Val">ATTACK</span>
+          <span class="stat-chip-lbl">Role</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-chip-val" id="stat3Val">FED</span>
+          <span class="stat-chip-lbl">Faction</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pc-warn">
+      <svg viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+      ⚠ &nbsp; Available on Desktop PC Only
+    </div>
+
+    <button class="main-cta" id="mainCta">
+      <span>⚡ &nbsp; RECRUIT THIS OFFICER — PLAY FREE &nbsp; ⚡</span>
+    </button>
+  </div>
+
+  <!-- RIGHT: SPOTLIGHT -->
+  <div class="right">
+    <div class="spotlight" id="spotlight">
+      <div class="sp-corner tl" id="spTL"></div>
+      <div class="sp-corner tr" id="spTR"></div>
+      <div class="sp-corner bl" id="spBL"></div>
+      <div class="sp-corner br" id="spBR"></div>
+      <div class="sp-bar-l" id="spBarL"></div>
+      <div class="sp-bar-r"></div>
+      <div class="sp-glow" id="spGlow"></div>
+
+      <div class="spotlight-img-wrap">
+        <img src="https://startrikcommand.gamezof.com/Characters/James%20T.%20Kirk%20.png"
+             alt="James T. Kirk"
+             class="spotlight-img"
+             id="spotImg"
+             onerror="this.style.opacity='0'">
+        <div class="spotlight-inner"></div>
+        <div class="spotlight-scan"></div>
+        <div class="sp-tag t1" id="spTag1">USS ENTERPRISE NCC-1701</div>
+        <div class="sp-tag t2" id="spTag2">WARP: ONLINE</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- THUMBNAIL STRIP -->
+  <div class="strip-wrap">
+    <div class="strip-label">— Select Your Officer —</div>
+    <div class="strip" id="strip"></div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+
+  /* ─── CHARACTER DATA ─── */
+  var CHARS = [
+    { id:'kirk',    name:'James T. Kirk',    img:'James%20T.%20Kirk%20.png', faction:'fed',   fLabel:'Federation',   role:'ATTACK',  rating:'★★★★★', desc:'The legendary captain of the USS Enterprise. Unmatched tactical genius and inspiring leadership under fire.',         tag1:'USS ENTERPRISE NCC-1701',    tag2:'COMMAND: ACTIVE' },
+    { id:'spock',   name:'Spock',            img:'Spock.png',                faction:'fed',   fLabel:'Federation',   role:'SCIENCE', rating:'★★★★★', desc:'First officer and science officer. His logic and analytical mind provide decisive advantage in any engagement.',       tag1:'VULCAN SCIENCE ACADEMY',     tag2:'SHIELDS: ONLINE' },
+    { id:'mccoy',   name:'Leonard McCoy',    img:'Leonard%20McCoy.png',      faction:'fed',   fLabel:'Federation',   role:'SUPPORT', rating:'★★★★☆', desc:"Starfleet's finest physician. His medical expertise keeps crew combat-ready and morale at peak levels.",             tag1:'MEDICAL OFFICER — ACTIVE',   tag2:'CREW: STABLE' },
+    { id:'uhura',   name:'Nyota Uhura',      img:'Nyota%20Uhura.png',        faction:'fed',   fLabel:'Federation',   role:'INTEL',   rating:'★★★★☆', desc:'Chief communications officer. Her expertise in alien languages turns intelligence into a devastating tactical weapon.',  tag1:'COMMUNICATIONS: OPEN',       tag2:'SCANNING...' },
+    { id:'sulu',    name:'Hikaru Sulu',      img:'Hikaru%20Sulu.png',        faction:'fed',   fLabel:'Federation',   role:'PILOT',   rating:'★★★★☆', desc:'Helmsman of the Enterprise. Precision navigation and ship control that keeps your fleet one step ahead of the enemy.', tag1:'HELM: ENGAGED',              tag2:'WARP: READY' },
+    { id:'scotty',  name:'Montgomery Scott', img:'Montgomery%20Scott.png',   faction:'fed',   fLabel:'Federation',   role:'ENGINEER',rating:'★★★★★', desc:"Miracle worker. Scotty can squeeze warp power from any ship and keep your fleet operational when it matters most.",    tag1:'ENGINEERING: ONLINE',        tag2:'DILITHIUM: 100%' },
+    { id:'chang',   name:'Chang',            img:'Chang.png',                faction:'kling', fLabel:'Klingon',      role:'ATTACK',  rating:'★★★★★', desc:'The ruthless Klingon general. A master of cloaked strikes who devastates enemy fleets before they know what hit them.',tag1:"KLINGON HIGH COUNCIL",       tag2:'CLOAKING: ONLINE' },
+    { id:'azetbur', name:'Azetbur',          img:'Azetbur.png',              faction:'kling', fLabel:'Klingon',      role:'COMMAND', rating:'★★★★☆', desc:"Chancellor of the Klingon High Council. Her political cunning and iron will fortify your alliance's dominance.",      tag1:'HIGH COUNCIL — CHANCELLOR',  tag2:'BATTLE CRUISER: READY' },
+    { id:'koth',    name:'Koth',             img:'Koth.png',                 faction:'kling', fLabel:'Klingon',      role:'DEFENSE', rating:'★★★★☆', desc:'Veteran Klingon warrior and tactician. His defensive strategies hold the line when every other officer would retreat.', tag1:'IKS BATTLE GROUP',           tag2:'SHIELDS: MAXIMUM' },
+    { id:'mral',    name:"M'Ral",            img:"M'Ral.png",                faction:'kling', fLabel:'Klingon',      role:'ATTACK',  rating:'★★★☆☆', desc:"A fierce Klingon officer with a talent for overwhelming firepower. Enemies fear the sound of his ship decloaking.",   tag1:'KLINGON DEFENCE FORCE',      tag2:'WEAPONS: ARMED' },
+    { id:'mara',    name:'Mara',             img:'Mara.png',                 faction:'kling', fLabel:'Klingon',      role:'INTEL',   rating:'★★★★☆', desc:'Intelligence officer and skilled scientist. Her analysis of enemy technology gives your fleet the decisive edge.',      tag1:'IMPERIAL INTELLIGENCE',      tag2:'SCANNING: ACTIVE' },
+    { id:'kumak',   name:'Kumak',            img:'Kumak.png',                faction:'kling', fLabel:'Klingon',      role:'ATTACK',  rating:'★★★☆☆', desc:'A battle-hardened Klingon warrior. His relentless assault style overwhelms enemy defenses through sheer ferocity.',   tag1:'KLINGON WARRIOR CASTE',      tag2:'TORPEDOES: LOADED' },
+    { id:'qaug',    name:"Qa'ug",            img:"Qa'ug.png",                faction:'kling', fLabel:'Klingon',      role:'SUPPORT', rating:'★★★☆☆', desc:'Support officer whose knowledge of Klingon ritual and combat traditions strengthens the entire crew around him.',       tag1:'KLINGON HONOUR GUARD',       tag2:'MORALE: ELEVATED' },
+    { id:'yanagh',  name:"Yan'agh",          img:"Yan'agh.png",              faction:'kling', fLabel:'Klingon',      role:'DEFENSE', rating:'★★★☆☆', desc:"A steadfast Klingon defender. Yan'agh turns the tide of prolonged engagements with unbreakable endurance.",            tag1:'IKS FORWARD SHIELD',         tag2:'HULL: REINFORCED' },
+    { id:'arix',    name:'Arix',             img:'Arix.png',                 faction:'rom',   fLabel:'Independent',  role:'INTEL',   rating:'★★★★☆', desc:'A shadowy operative whose true allegiances remain unknown. His intelligence network spans every quadrant of the galaxy.',tag1:'DEEP COVER — SECTOR UNKNOWN',tag2:'SIGNAL: ENCRYPTED' },
+    { id:'arkady',  name:'Arkady Ivanov',    img:'Arkady%20Ivanov.png',      faction:'rom',   fLabel:'Independent',  role:'COMMAND', rating:'★★★★☆', desc:'A charismatic commander who excels at building alliances and turning the political landscape of the quadrant in his favor.',tag1:'FEDERATION ATTACHÉ',        tag2:'DIPLOMACY: ACTIVE' },
+    { id:'javaid',  name:'Javaid',           img:'Javaid.png',               faction:'rom',   fLabel:'Independent',  role:'SCIENCE', rating:'★★★☆☆', desc:'A brilliant scientist whose unconventional research unlocks technologies other officers cannot even comprehend.',        tag1:'RESEARCH LAB — ONLINE',      tag2:'ANALYSIS: RUNNING' },
+    { id:'lnar',    name:"L'Nar",            img:"L'Nar.png",                faction:'rom',   fLabel:'Independent',  role:'ATTACK',  rating:'★★★★☆', desc:'A lethal hunter who tracks and eliminates high-value targets across the galaxy with cold, calculated precision.',       tag1:'HUNTER-CLASS OPERATIVE',     tag2:'TARGET: ACQUIRED' },
+    { id:'vella',   name:'Vella',            img:'Vella.png',                faction:'rom',   fLabel:'Independent',  role:'SUPPORT', rating:'★★★★☆', desc:'A resourceful and adaptable officer. Her versatility and quick thinking make her indispensable in any fleet composition.',tag1:'MULTI-FACTION CLEARANCE',   tag2:'STANDING BY...' }
+  ];
+
+  var BASE_IMG = 'https://startrikcommand.gamezof.com/Characters/';
+
+  var FACTION_COLORS = { fed:'#00c8ff', kling:'#ff4422', rom:'#22ffaa' };
+
+  /* ─── AFFILIATE ─── */
+  var DEST = 'https://to.wendiro.com/u?k=7d08dc16f674423b984ae4ca4b188d8a&via=15055';
+  var PARAMS = ['clickid','utm_source','utm_medium','utm_campaign','utm_content'];
+  function buildUrl(){
+    var url = new URL(DEST);
+    var q = new URLSearchParams(window.location.search);
+    PARAMS.forEach(function(p){ if(q.get(p)) url.searchParams.set(p, q.get(p)); });
+    return url.toString();
+  }
+  function go(){ window.location.href = buildUrl(); }
+  document.getElementById('hdrCta').addEventListener('click', go);
+  document.getElementById('mainCta').addEventListener('click', go);
+
+  /* ─── BUILD THUMBNAIL STRIP ─── */
+  var strip = document.getElementById('strip');
+  CHARS.forEach(function(c, i){
+    var div = document.createElement('div');
+    div.className = 'thumb' + (i===0?' active':'');
+    div.dataset.f = c.faction;
+    div.dataset.i = i;
+    var img = document.createElement('img');
+    img.src = BASE_IMG + c.img;
+    img.alt = c.name;
+    img.onerror = function(){ this.style.opacity='0'; };
+    var bar = document.createElement('div');
+    bar.className = 'thumb-bar';
+    var nm = document.createElement('div');
+    nm.className = 'thumb-name';
+    nm.textContent = c.name.split(' ')[0];
+    div.appendChild(img);
+    div.appendChild(bar);
+    div.appendChild(nm);
+    div.addEventListener('click', function(){
+      selectChar(parseInt(this.dataset.i));
+      resetTimer();
+    });
+    strip.appendChild(div);
+  });
+
+  /* ─── SELECT CHARACTER ─── */
+  var current = 0;
+  var spotImg = document.getElementById('spotImg');
+
+  function selectChar(idx){
+    if(idx === current) return;
+    current = idx;
+    var c = CHARS[idx];
+    var col = FACTION_COLORS[c.faction];
+
+    /* Fade spotlight image */
+    spotImg.classList.add('fade-out');
+    setTimeout(function(){
+      spotImg.src = BASE_IMG + c.img;
+      spotImg.alt = c.name;
+      spotImg.classList.remove('fade-out');
+    }, 250);
+
+    /* Update text panel */
+    document.getElementById('officerFaction').textContent = c.fLabel.toUpperCase();
+    document.getElementById('officerName').textContent = c.name.toUpperCase();
+    document.getElementById('officerDesc').textContent = c.desc;
+    document.getElementById('stat1Val').textContent = c.rating;
+    document.getElementById('stat2Val').textContent = c.role;
+    document.getElementById('stat3Val').textContent = c.faction.toUpperCase().slice(0,3);
+
+    /* HUD tags */
+    document.getElementById('spTag1').textContent = c.tag1;
+    document.getElementById('spTag2').textContent = c.tag2;
+
+    /* Faction color cascade */
+    document.documentElement.style.setProperty('--accent', col);
+
+    /* Update HUD corners / bars color */
+    ['spTL','spTR','spBL','spBR'].forEach(function(id){
+      var el = document.getElementById(id);
+      if(el){
+        el.style.borderColor = col;
+      }
+    });
+    var barL = document.getElementById('spBarL');
+    if(barL){
+      barL.style.background = 'linear-gradient(to bottom, transparent, ' + col + ', transparent)';
+      barL.style.boxShadow = '0 0 10px ' + col;
+    }
+    var glow = document.getElementById('spGlow');
+    if(glow){
+      glow.style.background = 'linear-gradient(to right, transparent, ' + col + ', transparent)';
+      glow.style.boxShadow = '0 0 20px ' + col;
+    }
+
+    /* Officer panel border */
+    document.getElementById('officerPanel').style.borderLeftColor = col;
+    document.getElementById('officerFaction').style.color = col;
+    document.getElementById('officerName').style.textShadow = '0 0 20px ' + col;
+
+    /* Stat chip values color */
+    ['stat1Val','stat2Val','stat3Val'].forEach(function(id){
+      document.getElementById(id).style.color = col;
+    });
+
+    /* Thumbnail active state */
+    document.querySelectorAll('.thumb').forEach(function(t,i){
+      t.classList.toggle('active', i === idx);
+    });
+
+    /* Scroll thumb into view */
+    var thumbs = document.querySelectorAll('.thumb');
+    if(thumbs[idx]){
+      thumbs[idx].scrollIntoView({behavior:'smooth', block:'nearest', inline:'center'});
+    }
+  }
+
+  /* ─── AUTO-ADVANCE ─── */
+  var INTERVAL = 4000;
+  var timer, progAnim;
+  var progressBar = document.getElementById('progressBar');
+
+  function startProgress(){
+    progressBar.style.transition = 'none';
+    progressBar.style.width = '0%';
+    clearTimeout(progAnim);
+    progAnim = setTimeout(function(){
+      progressBar.style.transition = 'width ' + INTERVAL + 'ms linear';
+      progressBar.style.width = '100%';
+    }, 40);
+  }
+
+  function next(){
+    var n = (current + 1) % CHARS.length;
+    selectChar(n);
+    startProgress();
+  }
+
+  function resetTimer(){
+    clearInterval(timer);
+    startProgress();
+    timer = setInterval(next, INTERVAL);
+  }
+
+  resetTimer();
+
+  /* ─── VIDEO FALLBACK ─── */
+  var v = document.getElementById('bgVideo');
+  if(v) v.addEventListener('error', function(){
+    document.querySelector('.vbg').style.background =
+      'radial-gradient(ellipse at 50% 0%, #001030 0%, #02040e 60%)';
+    v.style.display = 'none';
+  });
+
+  /* ─── STAR FIELD ─── */
+  var canvas = document.getElementById('stars');
+  var ctx = canvas.getContext('2d');
+  var W, H, stars = [], shooters = [];
+
+  function resize(){
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  for(var i=0; i<300; i++){
+    stars.push({
+      x:Math.random()*window.innerWidth,
+      y:Math.random()*window.innerHeight,
+      r:Math.random()*1.3+0.2,
+      a:Math.random()*.6+.2,
+      phase:Math.random()*Math.PI*2,
+      speed:Math.random()*.015+.003
+    });
+  }
+
+  var t=0;
+  function drawStars(){
+    ctx.clearRect(0,0,W,H);
+    t+=0.008;
+    stars.forEach(function(s){
+      var alpha = s.a*(0.6+0.4*Math.sin(t*s.speed*60+s.phase));
+      ctx.beginPath();
+      ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle='rgba(255,255,255,'+alpha+')';
+      ctx.fill();
+    });
+    if(Math.random()<0.004) shooters.push({
+      x:Math.random()*W, y:Math.random()*H*.4,
+      vx:3+Math.random()*4, vy:1+Math.random()*2,
+      life:40, maxLife:40
+    });
+    shooters.forEach(function(s,i){
+      s.x+=s.vx; s.y+=s.vy; s.life--;
+      var a=s.life/s.maxLife;
+      ctx.beginPath();
+      ctx.moveTo(s.x,s.y);
+      ctx.lineTo(s.x-s.vx*8,s.y-s.vy*8);
+      ctx.strokeStyle='rgba(0,200,255,'+(a*.6)+')';
+      ctx.lineWidth=1;
+      ctx.stroke();
+      if(s.life<=0) shooters.splice(i,1);
+    });
+    requestAnimationFrame(drawStars);
+  }
+  drawStars();
+
+})();
+</script>
+</body>
+</html>
