@@ -8,18 +8,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
   <style>
-    /* ═══════════════════════════
-       DESIGN SYSTEM
-    ═══════════════════════════ */
     :root {
-      --fed:   #00c8ff;
-      --kling: #ff4422;
-      --rom:   #22ffaa;
-      --gold:  #f0c040;
-      --dark:  #02040e;
-      --font-title: 'Orbitron', sans-serif;
-      --font-body:  'Exo 2', sans-serif;
-      --accent: var(--fed);
+      --fed:    #00c8ff;
+      --kling:  #ff4422;
+      --rom:    #22ffaa;
+      --amber:  #f0a020;
+      --amber2: #ffcc44;
+      --dark:   #02040e;
+      --tf: 'Orbitron', sans-serif;
+      --bf: 'Exo 2', sans-serif;
+      --accent: var(--amber);
     }
 
     *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
@@ -27,915 +25,797 @@
     html, body {
       width:100vw; height:100vh;
       background:var(--dark);
-      font-family:var(--font-body);
-      overflow:hidden;
-      color:#fff;
+      font-family:var(--bf);
+      overflow:hidden; color:#fff;
       user-select:none;
     }
 
-    /* ═══════════════════════════
-       STAR CANVAS
-    ═══════════════════════════ */
-    #stars {
-      position:fixed; inset:0; z-index:0;
-      pointer-events:none;
-    }
+    /* ── STAR CANVAS ── */
+    #stars { position:fixed; inset:0; z-index:0; pointer-events:none; }
 
-    /* ═══════════════════════════
-       VIDEO BG
-    ═══════════════════════════ */
-    .vbg {
-      position:fixed; inset:0; z-index:1;
-      pointer-events:none;
-    }
+    /* ── VIDEO BG — more visible ── */
+    .vbg { position:fixed; inset:0; z-index:1; pointer-events:none; }
     #bgVideo {
-      width:100%; height:100%;
-      object-fit:cover; opacity:0.15;
-      filter:saturate(0.3) hue-rotate(180deg);
+      width:100%; height:100%; object-fit:cover;
+      opacity:0.38;
+      filter:saturate(0.5) hue-rotate(10deg) brightness(0.8);
     }
     .vbg-over {
       position:absolute; inset:0;
-      background:linear-gradient(180deg,
-        rgba(2,4,14,0.6) 0%,
-        rgba(2,4,14,0.25) 40%,
-        rgba(2,4,14,0.6) 70%,
-        rgba(2,4,14,0.98) 100%);
+      background:
+        radial-gradient(ellipse 100% 70% at 50% 0%, rgba(0,30,80,0.3) 0%, transparent 55%),
+        linear-gradient(180deg, rgba(2,4,14,0.55) 0%, rgba(2,4,14,0.1) 35%, rgba(2,4,14,0.75) 100%);
     }
 
-    /* ═══════════════════════════
-       SCANLINES
-    ═══════════════════════════ */
+    /* ── SCANLINES ── */
     .scanlines {
-      position:fixed; inset:0; z-index:2;
-      pointer-events:none;
-      background:repeating-linear-gradient(
-        0deg, transparent, transparent 3px,
-        rgba(0,180,255,0.018) 3px, rgba(0,180,255,0.018) 4px
-      );
+      position:fixed; inset:0; z-index:2; pointer-events:none;
+      background:repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,180,255,0.015) 3px, rgba(0,180,255,0.015) 4px);
     }
 
-    /* ═══════════════════════════
-       HEADER
-    ═══════════════════════════ */
-    .hdr {
-      position:fixed; top:0; left:0; right:0;
-      z-index:300; height:56px;
-      display:flex; align-items:center;
-      justify-content:space-between;
-      padding:0 32px;
-      background:rgba(2,4,14,0.92);
-      backdrop-filter:blur(18px);
-      border-bottom:1px solid rgba(0,200,255,0.14);
-    }
-    .hdr::before, .hdr::after {
-      content:''; position:absolute;
-      width:14px; height:14px;
-    }
-    .hdr::before { top:0; left:0; border-top:2px solid var(--fed); border-left:2px solid var(--fed); }
-    .hdr::after  { top:0; right:0; border-top:2px solid var(--fed); border-right:2px solid var(--fed); }
-
-    .hdr-left { display:flex; align-items:center; gap:14px; }
-
-    .hdr-logo {
-      height:38px; object-fit:contain;
-      filter:drop-shadow(0 0 10px rgba(0,200,255,0.45));
+    /* ── AMBIENT FACTION LAYER ── */
+    .ambient {
+      position:fixed; inset:0; z-index:3; pointer-events:none;
+      transition:background 0.6s ease;
     }
 
+    /* ── LCARS SIDE RAILS ── */
+    .lcars-l { position:fixed; top:0; left:0; bottom:0; width:24px; z-index:4; pointer-events:none; }
+    .lcars-r { position:fixed; top:0; right:0; bottom:0; width:24px; z-index:4; pointer-events:none; }
+    .lcars-l svg, .lcars-r svg { width:100%; height:100%; }
+
+    /* ── CORNER BRACKETS ── */
+    .crn { position:fixed; z-index:5; pointer-events:none; width:52px; height:52px; }
+    .crn svg { width:100%; height:100%; }
+    .crn-tl { top:18px; left:28px; }
+    .crn-tr { top:18px; right:28px; transform:scaleX(-1); }
+    .crn-bl { bottom:18px; left:28px; transform:scaleY(-1); }
+    .crn-br { bottom:18px; right:28px; transform:scale(-1,-1); }
+
+    .h-rule {
+      position:fixed; left:80px; right:80px; height:1px; z-index:5; pointer-events:none;
+      background:linear-gradient(90deg, transparent, rgba(240,160,32,0.25), transparent);
+    }
+    .h-rule-t { top:18px; }
+    .h-rule-b { bottom:18px; }
+
+    /* ── LOGO — 3× (38→114px), top-left fixed ── */
+    .logo-wrap {
+      position:fixed; top:16px; left:36px; z-index:100;
+      opacity:0; animation:fadeDown 0.8s ease 0.1s forwards;
+    }
+    .logo-wrap img {
+      height:114px; width:auto; object-fit:contain;
+      filter:drop-shadow(0 0 18px rgba(240,160,32,0.7)) drop-shadow(0 0 50px rgba(240,160,32,0.25));
+      animation:logoPulse 4s ease-in-out infinite, logoFloat 7s ease-in-out infinite;
+    }
+    @keyframes logoPulse {
+      0%,100%{ filter:drop-shadow(0 0 18px rgba(240,160,32,0.7)) drop-shadow(0 0 50px rgba(240,160,32,0.25)); }
+      50%    { filter:drop-shadow(0 0 30px rgba(255,200,60,1)) drop-shadow(0 0 80px rgba(240,160,32,0.45)); }
+    }
+    @keyframes logoFloat {
+      0%,100%{ transform:translateY(0); }
+      50%    { transform:translateY(-6px); }
+    }
+
+    /* ── PC BADGE top-right ── */
     .pc-badge {
-      display:flex; align-items:center; gap:5px;
-      padding:3px 9px;
-      border:1px solid rgba(0,200,255,0.25);
-      border-radius:2px;
-      font-family:var(--font-title);
-      font-size:0.5rem; font-weight:400;
-      letter-spacing:2px; text-transform:uppercase;
-      color:rgba(0,200,255,0.5);
-    }
-    .pc-badge svg { width:11px; height:11px; fill:rgba(0,200,255,0.5); }
-
-    .hdr-cta {
-      position:relative;
-      padding:8px 22px;
-      background:transparent;
-      border:1px solid var(--fed);
-      border-radius:2px;
-      font-family:var(--font-title);
-      font-size:0.62rem; font-weight:700;
+      position:fixed; top:26px; right:36px; z-index:100;
+      display:flex; align-items:center; gap:6px;
+      padding:5px 12px;
+      background:rgba(2,4,14,0.9);
+      border:1px solid rgba(240,160,32,0.35);
+      font-family:var(--tf); font-size:0.5rem; font-weight:700;
       letter-spacing:3px; text-transform:uppercase;
-      color:var(--fed); cursor:pointer; overflow:hidden;
-      transition:color 0.3s, box-shadow 0.3s;
-      box-shadow:0 0 12px rgba(0,200,255,0.2);
+      color:rgba(240,160,32,0.7);
+      backdrop-filter:blur(8px);
+      animation:fadeDown 0.6s ease 0.2s both;
     }
-    .hdr-cta::before {
-      content:''; position:absolute; inset:0;
-      background:var(--fed);
-      transform:scaleX(0); transform-origin:left;
-      transition:transform 0.3s ease; z-index:-1;
-    }
-    .hdr-cta:hover::before { transform:scaleX(1); }
-    .hdr-cta:hover { color:#000; box-shadow:0 0 28px rgba(0,200,255,0.6); }
+    .pc-badge svg { width:11px; height:11px; fill:rgba(240,160,32,0.7); }
+    .pc-dot { width:5px; height:5px; border-radius:50%; background:var(--amber); box-shadow:0 0 6px var(--amber); animation:blink 1.4s ease infinite; }
 
-    /* ═══════════════════════════
-       PAGE — 3-ROW GRID
-       row1: header spacer
-       row2: main content (left+right)
-       row3: thumbnail strip
-    ═══════════════════════════ */
+    /* ── PAGE GRID — no header ── */
     .page {
       position:relative; z-index:10;
       height:100vh;
       display:grid;
-      grid-template-rows:56px 1fr auto;
       grid-template-columns:1fr 1fr;
-      grid-template-areas:
-        "hsp  hsp"
-        "left right"
-        "strip strip";
+      grid-template-rows:1fr auto;
+      grid-template-areas:"left right" "strip strip";
     }
-    .hsp { grid-area:hsp; }
 
-    /* ═══════════════════════════
-       LEFT COLUMN
-    ═══════════════════════════ */
+    /* ── LEFT COL ── */
     .left {
       grid-area:left;
       display:flex; flex-direction:column;
       justify-content:center;
-      padding:16px 28px 16px 44px;
-      gap:12px;
+      padding:16px 28px 16px 48px;
+      gap:11px;
     }
 
-    .hud-status {
-      display:flex; align-items:center; gap:8px;
-      animation:fadeLeft .7s ease .1s both;
-    }
-    .hud-dot {
-      width:6px; height:6px; border-radius:50%;
-      background:var(--fed); box-shadow:0 0 8px var(--fed);
-      animation:blink 1.4s ease infinite;
-    }
-    @keyframes blink {
-      0%,100%{opacity:1;} 50%{opacity:0.2;}
-    }
-    .hud-label {
-      font-family:var(--font-title);
-      font-size:0.52rem; letter-spacing:4px;
-      text-transform:uppercase; color:rgba(0,200,255,0.5);
-    }
+    /* spacer so content clears the logo */
+    .logo-clearance { height:96px; flex-shrink:0; }
+
+    /* stardate HUD */
+    .hud-status { display:flex; align-items:center; gap:8px; animation:fadeLeft 0.7s ease 0.1s both; }
+    .hud-dot { width:6px; height:6px; border-radius:50%; background:var(--amber); box-shadow:0 0 8px var(--amber); animation:blink 1.6s ease infinite; }
+    @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
+    .hud-label { font-family:var(--tf); font-size:0.5rem; letter-spacing:4px; text-transform:uppercase; color:rgba(240,160,32,0.55); }
 
     .title-main {
-      font-family:var(--font-title);
-      font-size:clamp(1.5rem, 3vw, 2.8rem);
-      font-weight:900; line-height:1.0;
-      letter-spacing:1px; color:#fff;
-      text-shadow:0 0 30px rgba(0,200,255,0.3);
-      animation:fadeLeft .7s ease .15s both;
+      font-family:var(--tf);
+      font-size:clamp(1.4rem,2.8vw,2.7rem);
+      font-weight:900; line-height:1.0; letter-spacing:1px;
+      color:#fff;
+      text-shadow:0 0 30px rgba(240,160,32,0.25);
+      animation:fadeLeft 0.7s ease 0.15s both;
     }
-    .title-main em {
-      font-style:normal; color:var(--fed);
-      text-shadow:0 0 20px rgba(0,200,255,0.8);
-    }
+    .title-main em { font-style:normal; color:var(--amber); text-shadow:0 0 20px rgba(240,160,32,0.8); transition:color 0.4s, text-shadow 0.4s; }
 
     .title-sub {
-      font-size:clamp(.78rem, 1.3vw, .95rem);
-      font-weight:300; letter-spacing:2px;
-      color:rgba(255,255,255,.4); text-transform:uppercase;
-      animation:fadeLeft .7s ease .2s both;
+      font-size:clamp(0.76rem,1.2vw,0.9rem); font-weight:300;
+      letter-spacing:2px; color:rgba(255,255,255,0.38); text-transform:uppercase;
+      animation:fadeLeft 0.7s ease 0.2s both;
     }
 
-    /* Faction divider */
-    .faction-divider {
-      display:flex; align-items:center; gap:10px;
-      animation:fadeLeft .7s ease .25s both;
-    }
-    .faction-divider::before {
-      content:''; width:24px; height:1px;
-      background:linear-gradient(to right, var(--fed), transparent);
-    }
-    .faction-divider-txt {
-      font-family:var(--font-title);
-      font-size:0.48rem; letter-spacing:3px;
-      text-transform:uppercase; color:rgba(0,200,255,.4);
-    }
-    .faction-divider::after {
-      content:''; flex:1; height:1px;
-      background:linear-gradient(to right, rgba(0,200,255,.15), transparent);
-    }
+    /* LCARS divider */
+    .lcars-div { display:flex; align-items:center; gap:0; animation:fadeLeft 0.7s ease 0.25s both; height:18px; }
+    .lc-pill  { width:32px; height:14px; border-radius:7px 0 0 7px; background:var(--amber); flex-shrink:0; transition:background 0.4s; }
+    .lc-bar   { flex:1; height:4px; background:rgba(240,160,32,0.4); transition:background 0.4s; }
+    .lc-sq    { width:14px; height:14px; background:rgba(240,160,32,0.22); flex-shrink:0; margin-left:4px; }
+    .lc-sq2   { width:9px;  height:14px; background:rgba(240,160,32,0.12); flex-shrink:0; margin-left:3px; }
 
-    /* Selected officer info panel */
+    /* Officer panel */
     .officer-panel {
-      padding:14px 16px;
-      background:rgba(0,200,255,.04);
-      border:1px solid rgba(0,200,255,.1);
-      border-left:2px solid var(--accent);
+      padding:13px 15px;
+      background:rgba(240,160,32,0.04);
+      border:1px solid rgba(240,160,32,0.09);
+      border-left:2px solid var(--amber);
       border-radius:0 4px 4px 0;
-      transition:border-color .4s ease;
-      animation:fadeLeft .7s ease .3s both;
-      min-height:90px;
+      transition:border-color 0.4s;
+      animation:fadeLeft 0.7s ease 0.3s both;
+      min-height:88px;
     }
-
     .officer-faction {
-      font-family:var(--font-title);
-      font-size:0.52rem; letter-spacing:3px;
-      text-transform:uppercase;
-      color:var(--accent);
-      margin-bottom:4px;
-      transition:color .4s ease;
+      font-family:var(--tf); font-size:0.5rem; letter-spacing:3px;
+      text-transform:uppercase; color:var(--amber);
+      margin-bottom:3px; transition:color 0.4s;
     }
-
     .officer-name {
-      font-family:var(--font-title);
-      font-size:clamp(1rem, 2vw, 1.6rem);
-      font-weight:900; color:#fff; line-height:1.1;
-      letter-spacing:1px;
-      text-shadow:0 0 20px var(--accent);
-      transition:text-shadow .4s ease;
+      font-family:var(--tf);
+      font-size:clamp(0.95rem,1.9vw,1.55rem);
+      font-weight:900; color:#fff; line-height:1.1; letter-spacing:1px;
+      text-shadow:0 0 20px var(--amber); transition:text-shadow 0.4s;
     }
-
     .officer-desc {
-      font-size:.78rem; font-weight:300;
-      font-style:italic; letter-spacing:.5px;
-      color:rgba(255,255,255,.5);
-      margin-top:5px; line-height:1.4;
+      font-size:0.76rem; font-weight:300; font-style:italic;
+      letter-spacing:0.5px; color:rgba(255,255,255,0.5);
+      margin-top:4px; line-height:1.4;
     }
-
-    /* Stats row */
-    .officer-stats {
-      display:flex; gap:14px; margin-top:8px;
-    }
+    .officer-stats { display:flex; gap:10px; margin-top:7px; }
     .stat-chip {
-      display:flex; flex-direction:column;
-      align-items:center; gap:1px;
-      padding:5px 10px;
-      background:rgba(0,200,255,.05);
-      border:1px solid rgba(0,200,255,.12);
-      border-radius:2px;
+      display:flex; flex-direction:column; align-items:center; gap:1px;
+      padding:4px 9px;
+      background:rgba(240,160,32,0.05);
+      border:1px solid rgba(240,160,32,0.12); border-radius:2px;
     }
-    .stat-chip-val {
-      font-family:var(--font-title);
-      font-size:.7rem; font-weight:700;
-      color:var(--accent); transition:color .4s;
-    }
-    .stat-chip-lbl {
-      font-size:.5rem; letter-spacing:2px;
-      text-transform:uppercase; color:rgba(255,255,255,.35);
-    }
+    .stat-chip-val { font-family:var(--tf); font-size:0.68rem; font-weight:700; color:var(--amber); transition:color 0.4s; }
+    .stat-chip-lbl { font-size:0.48rem; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,0.3); }
 
-    /* PC badge bottom */
+    /* PC warn */
     .pc-warn {
       display:flex; align-items:center; gap:7px;
-      padding:6px 12px;
-      background:rgba(0,200,255,.04);
-      border:1px solid rgba(0,200,255,.15);
-      border-radius:2px;
-      font-family:var(--font-title);
-      font-size:.5rem; letter-spacing:2px;
-      text-transform:uppercase; color:rgba(0,200,255,.55);
-      animation:fadeLeft .7s ease .45s both;
+      padding:5px 11px;
+      background:rgba(240,160,32,0.04);
+      border:1px solid rgba(240,160,32,0.14); border-radius:2px;
+      font-family:var(--tf); font-size:0.48rem; letter-spacing:2px;
+      text-transform:uppercase; color:rgba(240,160,32,0.55);
+      animation:fadeLeft 0.7s ease 0.45s both;
     }
-    .pc-warn svg { width:12px; height:12px; fill:rgba(0,200,255,.55); }
+    .pc-warn svg { width:12px; height:12px; fill:rgba(240,160,32,0.55); }
 
     /* MAIN CTA */
     .main-cta {
       position:relative;
-      padding:14px 36px;
+      padding:14px 34px;
       background:transparent;
-      border:1px solid var(--accent);
-      border-radius:2px;
-      font-family:var(--font-title);
-      font-size:clamp(.7rem, 1.3vw, .9rem);
-      font-weight:700; letter-spacing:3px;
-      text-transform:uppercase; color:#fff;
-      cursor:pointer; overflow:hidden;
-      transition:color .3s, box-shadow .3s, transform .2s;
-      animation:ctaPulse 2.5s ease infinite, fadeLeft .7s ease .4s both;
+      border:1px solid var(--amber);
+      font-family:var(--tf);
+      font-size:clamp(0.65rem,1.2vw,0.85rem);
+      font-weight:700; letter-spacing:3px; text-transform:uppercase;
+      color:var(--amber); cursor:pointer; overflow:hidden;
+      clip-path:polygon(10px 0%,100% 0%,100% calc(100% - 10px),calc(100% - 10px) 100%,0% 100%,0% 10px);
+      transition:color 0.3s, box-shadow 0.2s, transform 0.2s;
+      animation:ctaGlow 2s ease infinite, ctaNudge 5s ease-in-out infinite, fadeLeft 0.7s ease 0.4s both;
       white-space:nowrap;
     }
     .main-cta::before {
       content:''; position:absolute; inset:0;
-      background:var(--fed);
-      transform:scaleX(0) skewX(-4deg);
-      transform-origin:left;
-      transition:transform .35s ease; z-index:0;
+      background:var(--amber);
+      transform:scaleX(0) skewX(-5deg); transform-origin:left;
+      transition:transform 0.35s ease; z-index:0;
     }
     .main-cta::after {
-      content:''; position:absolute;
-      top:0; left:-100%; width:40%; height:100%;
-      background:linear-gradient(105deg,
-        transparent 20%, rgba(0,200,255,.4) 50%, transparent 80%);
-      animation:shimmer 3s ease-in-out infinite; z-index:1;
+      content:''; position:absolute; top:0; left:-110%; width:45%; height:100%;
+      background:linear-gradient(105deg, transparent 20%, rgba(255,200,60,0.5) 50%, transparent 80%);
+      animation:ctaShimmer 1.8s ease-in-out infinite; z-index:1;
     }
     .main-cta span { position:relative; z-index:2; }
     .main-cta:hover::before { transform:scaleX(1) skewX(0); }
-    .main-cta:hover {
-      color:#000;
-      box-shadow:0 0 60px rgba(0,200,255,.8), 0 0 120px rgba(0,200,255,.3);
-      transform:scale(1.03) translateY(-1px);
-    }
-    @keyframes ctaPulse {
-      0%,100%{box-shadow:0 0 14px rgba(0,200,255,.3);}
-      45%    {box-shadow:0 0 36px rgba(0,200,255,.7), inset 0 0 16px rgba(0,200,255,.1);}
-    }
-    @keyframes shimmer {
-      0%{left:-100%;} 55%{left:140%;} 100%{left:140%;}
-    }
+    .main-cta:hover { color:#000; box-shadow:0 0 60px rgba(240,160,32,0.9); transform:scale(1.04) translateY(-1px); animation:none; }
 
-    /* ═══════════════════════════
-       RIGHT COLUMN — Spotlight
-    ═══════════════════════════ */
+    @keyframes ctaGlow {
+      0%,100%{ box-shadow:0 0 14px rgba(240,160,32,0.3); }
+      50%    { box-shadow:0 0 40px rgba(240,160,32,0.75), inset 0 0 18px rgba(240,160,32,0.1); }
+    }
+    @keyframes ctaNudge {
+      0%,80%,100%{ transform:scale(1) translateX(0); }
+      83%{ transform:scale(1) translateX(-4px); }
+      87%{ transform:scale(1) translateX(5px); }
+      91%{ transform:scale(1) translateX(-2px); }
+    }
+    @keyframes ctaShimmer { 0%{left:-110%;} 55%{left:150%;} 100%{left:150%;} }
+
+    /* ── RIGHT COL — SPOTLIGHT ── */
     .right {
       grid-area:right;
       display:flex; align-items:center; justify-content:center;
-      padding:12px 36px 12px 12px;
-      animation:fadeRight .9s ease .2s both;
+      padding:12px 44px 12px 12px;
+      animation:fadeRight 0.9s ease 0.2s both;
     }
 
-    .spotlight {
-      position:relative;
-      width:100%; max-width:420px;
-      aspect-ratio:3/4;
-    }
+    .spotlight { position:relative; width:100%; max-width:400px; aspect-ratio:3/4; }
 
-    /* Hexagonal clip on image */
+    /* LCARS-angled clip */
     .spotlight-img-wrap {
       width:100%; height:100%;
-      clip-path:polygon(
-        12px 0%, calc(100% - 12px) 0%,
-        100% 12px, 100% calc(100% - 28px),
-        calc(100% - 28px) 100%,
-        28px 100%, 0% calc(100% - 12px), 0% 12px
-      );
-      overflow:hidden;
-      position:relative;
+      clip-path:polygon(12px 0%,calc(100% - 12px) 0%,100% 12px,100% calc(100% - 28px),calc(100% - 28px) 100%,28px 100%,0% calc(100% - 12px),0% 12px);
+      overflow:hidden; position:relative;
+      border:1px solid rgba(240,160,32,0.25);
+      box-shadow:0 0 40px rgba(240,160,32,0.08), inset 0 0 30px rgba(0,0,0,0.4);
+      transition:box-shadow 0.4s, border-color 0.4s;
     }
 
     .spotlight-img {
-      width:100%; height:100%;
-      object-fit:cover; object-position:top center;
-      display:block;
-      transition:opacity .5s ease, transform .5s ease;
-      filter:saturate(.9) brightness(.9);
+      width:100%; height:100%; object-fit:cover; object-position:top center;
+      display:block; transition:opacity 0.45s ease, transform 0.45s ease;
+      filter:saturate(0.88) brightness(0.9);
     }
-    .spotlight-img.fade-out { opacity:0; transform:scale(1.04); }
+    .spotlight-img.fade-out { opacity:0; transform:scale(1.05); }
 
-    /* Inner gradient */
     .spotlight-inner {
       position:absolute; inset:0; z-index:2; pointer-events:none;
-      background:linear-gradient(
-        to bottom, transparent 40%, rgba(2,4,14,.7) 100%
-      );
+      background:linear-gradient(to bottom, transparent 40%, rgba(2,4,14,0.75) 100%);
     }
 
-    /* Scan line */
-    .spotlight-scan {
-      position:absolute; top:0; left:0; right:0;
-      height:2px; z-index:3;
-      background:linear-gradient(to right,
-        transparent, rgba(0,200,255,.7), transparent);
-      animation:scanDown 3.5s ease-in-out infinite;
+    /* faction energy field — behind the image */
+    .sp-energy {
+      position:absolute; inset:0; z-index:0; pointer-events:none;
+      opacity:0; transition:opacity 0.5s;
+      background:radial-gradient(ellipse at 50% 100%, var(--accent) 0%, transparent 60%);
+      filter:blur(30px);
     }
-    @keyframes scanDown {
-      0%  {top:0%; opacity:0;}
-      5%  {opacity:1;}
-      95% {opacity:.5;}
-      100%{top:100%; opacity:0;}
+    .spotlight:hover .sp-energy { opacity:0.2; }
+
+    /* scan line */
+    .sp-scan {
+      position:absolute; top:0; left:0; right:0; height:2px; z-index:6;
+      background:linear-gradient(to right, transparent, var(--amber), transparent);
+      animation:scanDown 3.2s ease-in-out infinite;
+      transition:background 0.4s;
+    }
+    @keyframes scanDown { 0%{top:0%;opacity:0;} 5%{opacity:1;} 95%{opacity:0.45;} 100%{top:100%;opacity:0;} }
+
+    /* targeting reticle */
+    .sp-reticle {
+      position:absolute; z-index:7; pointer-events:none;
+      width:56px; height:56px; top:35%; left:50%;
+      transform:translate(-50%,-50%);
+      animation:retSpin 18s linear infinite;
+      transition:opacity 0.4s;
+    }
+    @keyframes retSpin { to { transform:translate(-50%,-50%) rotate(360deg); } }
+
+    /* HUD corners */
+    .sp-c { position:absolute; width:20px; height:20px; z-index:8; transition:border-color 0.4s; }
+    .sp-c.tl { top:-1px; left:-1px; border-top:2px solid var(--amber); border-left:2px solid var(--amber); }
+    .sp-c.tr { top:-1px; right:-1px; border-top:2px solid var(--amber); border-right:2px solid var(--amber); }
+    .sp-c.bl { bottom:-1px; left:-1px; border-bottom:2px solid var(--amber); border-left:2px solid var(--amber); }
+
+    /* angled corner accent */
+    .sp-angle {
+      position:absolute; bottom:-2px; right:-2px;
+      width:36px; height:36px; z-index:8; pointer-events:none;
+      clip-path:polygon(0 100%,100% 0,100% 100%);
+      background:rgba(240,160,32,0.12);
+      border-bottom:2px solid var(--amber); border-right:2px solid var(--amber);
+      transition:border-color 0.4s, background 0.4s;
     }
 
-    /* HUD corners on spotlight */
-    .sp-corner {
-      position:absolute; width:18px; height:18px; z-index:4;
-    }
-    .sp-corner.tl{top:-2px;left:-2px; border-top:2px solid var(--accent); border-left:2px solid var(--accent); transition:border-color .4s;}
-    .sp-corner.tr{top:-2px;right:-2px; border-top:2px solid var(--accent); border-right:2px solid var(--accent); transition:border-color .4s;}
-    .sp-corner.bl{bottom:-2px;left:-2px; border-bottom:2px solid var(--accent); border-left:2px solid var(--accent); transition:border-color .4s;}
-    .sp-corner.br{bottom:-2px;right:-2px; border-bottom:2px solid var(--accent); border-right:2px solid var(--accent); transition:border-color .4s;}
-
-    /* Side glow bars */
+    /* side glow bars */
     .sp-bar-l, .sp-bar-r {
-      position:absolute; top:15%; bottom:15%;
-      width:2px; z-index:4;
-      transition:background .4s, box-shadow .4s;
+      position:absolute; top:12%; bottom:12%; width:2px; z-index:7;
     }
-    .sp-bar-l {
-      left:-7px;
-      background:linear-gradient(to bottom, transparent, var(--accent), transparent);
-      box-shadow:0 0 10px var(--accent);
-    }
-    .sp-bar-r {
-      right:-7px;
-      background:linear-gradient(to bottom, transparent, rgba(0,200,255,.3), transparent);
-    }
+    .sp-bar-l { left:-7px; background:linear-gradient(to bottom,transparent,var(--amber),transparent); box-shadow:0 0 10px var(--amber); transition:background 0.4s,box-shadow 0.4s; }
+    .sp-bar-r { right:-7px; background:linear-gradient(to bottom,transparent,rgba(240,160,32,0.3),transparent); }
 
-    /* Bottom glow */
     .sp-glow {
-      position:absolute; bottom:-4px; left:10%; right:10%;
-      height:1px; z-index:4;
-      background:linear-gradient(to right, transparent, var(--accent), transparent);
-      box-shadow:0 0 20px var(--accent);
-      transition:background .4s, box-shadow .4s;
+      position:absolute; bottom:-4px; left:8%; right:14%; height:1px; z-index:7;
+      background:linear-gradient(to right,transparent,var(--amber),transparent);
+      box-shadow:0 0 18px rgba(240,160,32,0.6);
+      transition:background 0.4s, box-shadow 0.4s;
     }
 
-    /* HUD data tags */
+    /* HUD tags */
     .sp-tag {
-      position:absolute; z-index:5;
-      font-family:var(--font-title);
-      font-size:.46rem; letter-spacing:2px;
-      text-transform:uppercase;
-      color:rgba(0,200,255,.5); white-space:nowrap;
+      position:absolute; z-index:9;
+      font-family:var(--tf); font-size:0.44rem; letter-spacing:2px;
+      text-transform:uppercase; color:rgba(240,160,32,0.55); white-space:nowrap;
+      transition:color 0.4s;
     }
     .sp-tag::before {
-      content:'';
-      display:inline-block; width:4px; height:4px;
-      border-radius:50%; background:var(--fed);
-      box-shadow:0 0 5px var(--fed);
-      margin-right:4px; vertical-align:middle;
-      animation:blink 1.8s ease infinite;
+      content:''; display:inline-block; width:4px; height:4px;
+      border-radius:50%; background:var(--amber); box-shadow:0 0 5px var(--amber);
+      margin-right:4px; vertical-align:middle; animation:blink 2s ease infinite;
+      transition:background 0.4s, box-shadow 0.4s;
     }
-    .sp-tag.t1{top:8px; left:12px;}
-    .sp-tag.t2{top:8px; right:12px; text-align:right;}
+    .st1 { top:8px; left:12px; }
+    .st2 { top:8px; right:12px; }
 
-    /* ═══════════════════════════
-       THUMBNAIL STRIP
-    ═══════════════════════════ */
+    /* ── THUMBNAIL STRIP ── */
     .strip-wrap {
       grid-area:strip;
       position:relative;
-      padding:10px 40px 14px;
-      background:rgba(2,4,14,.95);
-      border-top:1px solid rgba(0,200,255,.1);
+      padding:8px 40px 12px;
+      background:rgba(2,4,14,0.97);
+      border-top:1px solid rgba(240,160,32,0.14);
     }
-    .strip-wrap::before, .strip-wrap::after {
-      content:''; position:absolute;
-      top:0; width:80px; height:100%;
-      pointer-events:none; z-index:5;
-    }
+    /* LCARS end pills */
     .strip-wrap::before {
-      left:0;
-      background:linear-gradient(to right, rgba(2,4,14,1), transparent);
+      content:''; position:absolute; left:0; top:0; bottom:0;
+      width:8px; border-radius:0 4px 4px 0;
+      background:var(--amber); box-shadow:0 0 12px rgba(240,160,32,0.5);
     }
     .strip-wrap::after {
-      right:0;
-      background:linear-gradient(to left, rgba(2,4,14,1), transparent);
+      content:''; position:absolute; right:0; top:0; bottom:0;
+      width:8px; border-radius:4px 0 0 4px;
+      background:rgba(240,160,32,0.35);
     }
 
     .strip-label {
-      font-family:var(--font-title);
-      font-size:.48rem; letter-spacing:4px;
-      text-transform:uppercase; color:rgba(0,200,255,.35);
-      margin-bottom:7px; text-align:center;
+      font-family:var(--tf); font-size:0.46rem; letter-spacing:4px;
+      text-transform:uppercase; color:rgba(240,160,32,0.35);
+      margin-bottom:6px; text-align:center;
     }
-
-    .strip {
-      display:flex; gap:8px;
-      justify-content:center;
-      flex-wrap:nowrap;
-      overflow:hidden;
-    }
+    .strip { display:flex; gap:7px; justify-content:center; flex-wrap:nowrap; overflow:hidden; }
 
     .thumb {
-      flex-shrink:0;
-      width:58px; height:72px;
-      position:relative;
-      cursor:pointer;
-      border-radius:3px;
-      overflow:hidden;
-      border:1px solid rgba(0,200,255,.12);
-      transition:transform .3s, border-color .3s, box-shadow .3s;
+      flex-shrink:0; width:56px; height:70px;
+      position:relative; cursor:pointer; border-radius:2px; overflow:hidden;
+      border:1px solid rgba(240,160,32,0.1);
+      transition:transform 0.3s, border-color 0.3s, box-shadow 0.3s;
     }
     .thumb img {
-      width:100%; height:100%;
-      object-fit:cover; object-position:top center;
-      display:block;
-      filter:saturate(.5) brightness(.6);
-      transition:filter .3s;
+      width:100%; height:100%; object-fit:cover; object-position:top center;
+      display:block; filter:saturate(0.4) brightness(0.55); transition:filter 0.3s;
     }
-    .thumb:hover img, .thumb.active img {
-      filter:saturate(1) brightness(1);
-    }
-    .thumb:hover, .thumb.active {
-      transform:translateY(-5px) scale(1.08);
-      border-color:var(--accent);
-      box-shadow:0 0 14px var(--accent), 0 4px 20px rgba(0,0,0,.6);
-      z-index:10;
-    }
-    .thumb.active {
-      transform:translateY(-8px) scale(1.12);
-    }
+    .thumb:hover img, .thumb.active img { filter:saturate(1) brightness(1); }
+    .thumb:hover { transform:translateY(-5px) scale(1.09); z-index:10; border-color:var(--amber); box-shadow:0 0 14px var(--amber); }
+    .thumb.active { transform:translateY(-9px) scale(1.13); border-color:var(--amber); box-shadow:0 0 18px var(--amber), 0 4px 20px rgba(0,0,0,0.7); z-index:20; }
 
-    /* Faction color bar at bottom of thumb */
-    .thumb-bar {
-      position:absolute; bottom:0; left:0; right:0;
-      height:2px;
-    }
+    .thumb-bar { position:absolute; bottom:0; left:0; right:0; height:2px; }
     .thumb[data-f="fed"]   .thumb-bar { background:var(--fed); }
     .thumb[data-f="kling"] .thumb-bar { background:var(--kling); }
     .thumb[data-f="rom"]   .thumb-bar { background:var(--rom); }
 
-    /* Name tooltip on hover */
     .thumb-name {
-      position:absolute; bottom:4px; left:0; right:0;
-      text-align:center;
-      font-family:var(--font-title);
-      font-size:.38rem; font-weight:700;
-      letter-spacing:1px; text-transform:uppercase;
+      position:absolute; bottom:3px; left:0; right:0; text-align:center;
+      font-family:var(--tf); font-size:0.35rem; font-weight:700;
+      letter-spacing:0.5px; text-transform:uppercase;
       color:#fff; text-shadow:0 0 4px #000;
-      opacity:0; transition:opacity .2s;
-      padding:0 2px; line-height:1.2;
+      opacity:0; transition:opacity 0.2s; padding:0 2px; line-height:1.2;
     }
-    .thumb:hover .thumb-name,
-    .thumb.active .thumb-name { opacity:1; }
+    .thumb:hover .thumb-name, .thumb.active .thumb-name { opacity:1; }
 
-    /* Progress bar */
-    .progress-bar-wrap {
-      width:200px; height:2px;
-      background:rgba(0,200,255,.12);
-      border-radius:2px; margin:6px auto 0;
+    .progress-wrap {
+      width:220px; height:2px;
+      background:rgba(240,160,32,0.1);
+      border-radius:2px; margin:5px auto 0;
     }
-    .progress-bar {
-      height:100%; border-radius:2px;
-      background:linear-gradient(to right, transparent, var(--fed));
-      transition:width linear;
-    }
+    .progress-bar { height:100%; border-radius:2px; background:linear-gradient(to right, transparent, var(--amber)); transition:width linear; }
 
-    /* ═══════════════════════════
-       ANIMATIONS
-    ═══════════════════════════ */
-    @keyframes fadeLeft {
-      from{opacity:0;transform:translateX(-20px);}
-      to  {opacity:1;transform:translateX(0);}
-    }
-    @keyframes fadeRight {
-      from{opacity:0;transform:translateX(20px);}
-      to  {opacity:1;transform:translateX(0);}
-    }
-
-    /* ═══════════════════════════
-       MOBILE FALLBACK
-    ═══════════════════════════ */
-    @media(max-width:780px){
-      html,body{overflow-y:auto;}
-      .page{
-        grid-template-columns:1fr;
-        grid-template-rows:56px auto auto auto;
-        grid-template-areas:"hsp" "right" "left" "strip";
-        height:auto;
-      }
-      .left{padding:16px 20px;}
-      .right{padding:16px 20px;}
-      .spotlight{max-width:320px;}
-      .thumb{width:48px;height:60px;}
-    }
+    /* ── ANIMATIONS ── */
+    @keyframes fadeDown  { from{opacity:0;transform:translateY(-14px);} to{opacity:1;transform:translateY(0);} }
+    @keyframes fadeLeft  { from{opacity:0;transform:translateX(-20px);} to{opacity:1;transform:translateX(0);} }
+    @keyframes fadeRight { from{opacity:0;transform:translateX(20px);} to{opacity:1;transform:translateX(0);} }
   </style>
 </head>
 <body>
 
-<canvas id="stars"></canvas>
+  <canvas id="stars"></canvas>
 
-<div class="vbg">
-  <video autoplay muted loop playsinline id="bgVideo">
-    <source src="https://startrikcommand.gamezof.com/video-bg.mp4" type="video/mp4">
-  </video>
-  <div class="vbg-over"></div>
-</div>
-
-<div class="scanlines"></div>
-
-<!-- HEADER -->
-<header class="hdr">
-  <div class="hdr-left">
-    <img src="https://startrikcommand.gamezof.com/logo.webp"
-         alt="Star Trek Fleet Command" class="hdr-logo"
-         onerror="this.style.display='none'">
-    <div class="pc-badge">
-      <svg viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
-      PC Desktop Only
-    </div>
+  <div class="vbg">
+    <video autoplay muted loop playsinline id="bgVideo">
+      <source src="https://startrikcommand.gamezof.com/video-bg.mp4" type="video/mp4">
+    </video>
+    <div class="vbg-over"></div>
   </div>
-  <button class="hdr-cta" id="hdrCta">▶ PLAY FREE</button>
-</header>
 
-<!-- PAGE -->
-<div class="page">
-  <div class="hsp"></div>
+  <div class="scanlines"></div>
+  <div class="ambient" id="ambient"></div>
 
-  <!-- LEFT -->
-  <div class="left">
-    <div class="hud-status">
-      <div class="hud-dot"></div>
-      <span class="hud-label">Officer Selection — Starfleet Command</span>
+  <!-- LCARS RAILS -->
+  <div class="lcars-l">
+    <svg viewBox="0 0 24 800" preserveAspectRatio="none" fill="none">
+      <rect x="3" y="12" width="18" height="58" rx="9" fill="rgba(240,160,32,0.82)"/>
+      <rect x="3" y="76" width="18" height="18" rx="3" fill="rgba(240,160,32,0.38)"/>
+      <rect x="3" y="100" width="18" height="8"  rx="2" fill="rgba(240,160,32,0.22)"/>
+      <rect x="9" y="114" width="6"  height="560" rx="3" fill="rgba(240,160,32,0.12)"/>
+      <rect x="3" y="684" width="18" height="10" rx="2" fill="rgba(240,160,32,0.22)"/>
+      <rect x="3" y="700" width="18" height="20" rx="3" fill="rgba(240,160,32,0.38)"/>
+      <rect x="3" y="726" width="18" height="58" rx="9" fill="rgba(240,160,32,0.7)"/>
+    </svg>
+  </div>
+  <div class="lcars-r">
+    <svg viewBox="0 0 24 800" preserveAspectRatio="none" fill="none">
+      <rect x="3" y="12" width="18" height="38" rx="9" fill="rgba(0,200,255,0.55)"/>
+      <rect x="3" y="56" width="18" height="12" rx="3" fill="rgba(0,200,255,0.22)"/>
+      <rect x="9" y="74" width="6"  height="620" rx="3" fill="rgba(0,200,255,0.08)"/>
+      <rect x="3" y="704" width="18" height="12" rx="3" fill="rgba(0,200,255,0.22)"/>
+      <rect x="3" y="722" width="18" height="66" rx="9" fill="rgba(0,200,255,0.45)"/>
+    </svg>
+  </div>
+
+  <!-- CORNER BRACKETS -->
+  <div class="crn crn-tl"><svg viewBox="0 0 52 52" fill="none"><polyline points="0,52 0,0 52,0" stroke="rgba(240,160,32,0.5)" stroke-width="1.5"/><polyline points="7,52 7,7 52,7" stroke="rgba(240,160,32,0.18)" stroke-width="0.75"/><rect x="0" y="0" width="5" height="5" fill="rgba(240,160,32,0.45)"/></svg></div>
+  <div class="crn crn-tr"><svg viewBox="0 0 52 52" fill="none"><polyline points="0,52 0,0 52,0" stroke="rgba(240,160,32,0.5)" stroke-width="1.5"/><polyline points="7,52 7,7 52,7" stroke="rgba(240,160,32,0.18)" stroke-width="0.75"/><rect x="0" y="0" width="5" height="5" fill="rgba(240,160,32,0.45)"/></svg></div>
+  <div class="crn crn-bl"><svg viewBox="0 0 52 52" fill="none"><polyline points="0,52 0,0 52,0" stroke="rgba(240,160,32,0.5)" stroke-width="1.5"/><polyline points="7,52 7,7 52,7" stroke="rgba(240,160,32,0.18)" stroke-width="0.75"/><rect x="0" y="0" width="5" height="5" fill="rgba(240,160,32,0.45)"/></svg></div>
+  <div class="crn crn-br"><svg viewBox="0 0 52 52" fill="none"><polyline points="0,52 0,0 52,0" stroke="rgba(240,160,32,0.5)" stroke-width="1.5"/><polyline points="7,52 7,7 52,7" stroke="rgba(240,160,32,0.18)" stroke-width="0.75"/><rect x="0" y="0" width="5" height="5" fill="rgba(240,160,32,0.45)"/></svg></div>
+
+  <div class="h-rule h-rule-t"></div>
+  <div class="h-rule h-rule-b"></div>
+
+  <!-- LOGO 3× -->
+  <div class="logo-wrap">
+    <img src="https://startrikcommand.gamezof.com/logo.webp" alt="Star Trek Fleet Command" onerror="this.style.display='none'">
+  </div>
+
+  <!-- PC BADGE -->
+  <div class="pc-badge">
+    <div class="pc-dot"></div>
+    <svg viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+    PC Only
+  </div>
+
+  <!-- PAGE -->
+  <div class="page">
+
+    <!-- LEFT -->
+    <div class="left">
+      <div class="logo-clearance"></div>
+
+      <div class="hud-status">
+        <div class="hud-dot"></div>
+        <span class="hud-label" id="stardate">STARDATE 2400.0 — OFFICER SELECTION</span>
+      </div>
+
+      <h1 class="title-main">CHOOSE YOUR<br><em id="titleEm">OFFICER</em></h1>
+      <p class="title-sub">19 Legendary Characters. One Galaxy. Your Command.</p>
+
+      <div class="lcars-div">
+        <div class="lc-pill" id="lcPill"></div>
+        <div class="lc-bar" id="lcBar"></div>
+        <div class="lc-sq"></div>
+        <div class="lc-sq2"></div>
+      </div>
+
+      <div class="officer-panel" id="officerPanel">
+        <div class="officer-faction" id="oFaction">FEDERATION</div>
+        <div class="officer-name"   id="oName">JAMES T. KIRK</div>
+        <div class="officer-desc"   id="oDesc">The legendary captain of the USS Enterprise. Unmatched in tactical genius and inspiring leadership under fire.</div>
+        <div class="officer-stats">
+          <div class="stat-chip"><span class="stat-chip-val" id="oRating">★★★★★</span><span class="stat-chip-lbl">Rating</span></div>
+          <div class="stat-chip"><span class="stat-chip-val" id="oRole">ATTACK</span><span class="stat-chip-lbl">Role</span></div>
+          <div class="stat-chip"><span class="stat-chip-val" id="oFact">FED</span><span class="stat-chip-lbl">Faction</span></div>
+        </div>
+      </div>
+
+      <div class="pc-warn">
+        <svg viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+        Available on Desktop Windows PC Only
+      </div>
+
+      <button class="main-cta" id="mainCta">
+        <span>⚡ &nbsp; RECRUIT THIS OFFICER — PLAY FREE &nbsp; ⚡</span>
+      </button>
     </div>
 
-    <h1 class="title-main">
-      CHOOSE YOUR<br><em>OFFICER</em>
-    </h1>
+    <!-- RIGHT — SPOTLIGHT -->
+    <div class="right">
+      <div class="spotlight" id="spotlight">
+        <div class="sp-energy" id="spEnergy"></div>
+        <div class="sp-c tl" id="spTL"></div>
+        <div class="sp-c tr" id="spTR"></div>
+        <div class="sp-c bl" id="spBL"></div>
+        <div class="sp-angle" id="spAngle"></div>
+        <div class="sp-bar-l" id="spBarL"></div>
+        <div class="sp-bar-r"></div>
+        <div class="sp-glow" id="spGlow"></div>
 
-    <p class="title-sub">19 Legendary Characters. One Galaxy. Your Command.</p>
+        <div class="spotlight-img-wrap" id="spWrap">
+          <img src="https://startrikcommand.gamezof.com/Characters/James%20T.%20Kirk%20.png"
+               alt="James T. Kirk" class="spotlight-img" id="spotImg"
+               onerror="this.style.opacity='0'">
+          <div class="spotlight-inner"></div>
+          <div class="sp-scan" id="spScan"></div>
 
-    <div class="faction-divider">
-      <span class="faction-divider-txt">Active Officer Profile</span>
-    </div>
+          <!-- rotating reticle -->
+          <svg class="sp-reticle" viewBox="0 0 56 56" fill="none">
+            <circle cx="28" cy="28" r="24" stroke="rgba(240,160,32,0.28)" stroke-width="0.75" stroke-dasharray="3 5"/>
+            <circle cx="28" cy="28" r="15" stroke="rgba(0,200,255,0.2)" stroke-width="0.5"/>
+            <line x1="28" y1="4"  x2="28" y2="13" stroke="rgba(240,160,32,0.5)" stroke-width="1.2"/>
+            <line x1="28" y1="43" x2="28" y2="52" stroke="rgba(240,160,32,0.5)" stroke-width="1.2"/>
+            <line x1="4"  y1="28" x2="13" y2="28" stroke="rgba(240,160,32,0.5)" stroke-width="1.2"/>
+            <line x1="43" y1="28" x2="52" y2="28" stroke="rgba(240,160,32,0.5)" stroke-width="1.2"/>
+            <circle cx="28" cy="28" r="2.5" fill="rgba(240,160,32,0.45)"/>
+          </svg>
 
-    <!-- Dynamic officer panel -->
-    <div class="officer-panel" id="officerPanel">
-      <div class="officer-faction" id="officerFaction">FEDERATION</div>
-      <div class="officer-name" id="officerName">JAMES T. KIRK</div>
-      <div class="officer-desc" id="officerDesc">The legendary captain of the USS Enterprise. Unmatched in tactical genius and inspiring leadership under fire.</div>
-      <div class="officer-stats">
-        <div class="stat-chip">
-          <span class="stat-chip-val" id="stat1Val">★★★★★</span>
-          <span class="stat-chip-lbl">Rating</span>
-        </div>
-        <div class="stat-chip">
-          <span class="stat-chip-val" id="stat2Val">ATTACK</span>
-          <span class="stat-chip-lbl">Role</span>
-        </div>
-        <div class="stat-chip">
-          <span class="stat-chip-val" id="stat3Val">FED</span>
-          <span class="stat-chip-lbl">Faction</span>
+          <div class="sp-tag st1" id="spT1">USS ENTERPRISE NCC-1701</div>
+          <div class="sp-tag st2" id="spT2">COMMAND: ACTIVE</div>
         </div>
       </div>
     </div>
 
-    <div class="pc-warn">
-      <svg viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
-      ⚠ &nbsp; Available on Desktop PC Only
+    <!-- THUMBNAIL STRIP -->
+    <div class="strip-wrap">
+      <div class="strip-label">— Select Your Officer —</div>
+      <div class="strip" id="strip"></div>
+      <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
     </div>
 
-    <button class="main-cta" id="mainCta">
-      <span>⚡ &nbsp; RECRUIT THIS OFFICER — PLAY FREE &nbsp; ⚡</span>
-    </button>
   </div>
 
-  <!-- RIGHT: SPOTLIGHT -->
-  <div class="right">
-    <div class="spotlight" id="spotlight">
-      <div class="sp-corner tl" id="spTL"></div>
-      <div class="sp-corner tr" id="spTR"></div>
-      <div class="sp-corner bl" id="spBL"></div>
-      <div class="sp-corner br" id="spBR"></div>
-      <div class="sp-bar-l" id="spBarL"></div>
-      <div class="sp-bar-r"></div>
-      <div class="sp-glow" id="spGlow"></div>
+  <script>
+  (function(){
 
-      <div class="spotlight-img-wrap">
-        <img src="https://startrikcommand.gamezof.com/Characters/James%20T.%20Kirk%20.png"
-             alt="James T. Kirk"
-             class="spotlight-img"
-             id="spotImg"
-             onerror="this.style.opacity='0'">
-        <div class="spotlight-inner"></div>
-        <div class="spotlight-scan"></div>
-        <div class="sp-tag t1" id="spTag1">USS ENTERPRISE NCC-1701</div>
-        <div class="sp-tag t2" id="spTag2">WARP: ONLINE</div>
-      </div>
-    </div>
-  </div>
+    var CHARS = [
+      {id:'kirk',   name:'James T. Kirk',    img:'James%20T.%20Kirk%20.png', faction:'fed',  fLabel:'Federation',  role:'ATTACK',  rating:'★★★★★', desc:'The legendary captain of the USS Enterprise. Unmatched tactical genius and inspiring leadership under fire.',         tag1:'USS ENTERPRISE NCC-1701',   tag2:'COMMAND: ACTIVE'},
+      {id:'spock',  name:'Spock',            img:'Spock.png',                faction:'fed',  fLabel:'Federation',  role:'SCIENCE', rating:'★★★★★', desc:'First officer and science officer. His logic and analytical mind provide decisive advantage in any engagement.',       tag1:'VULCAN SCIENCE ACADEMY',    tag2:'SHIELDS: ONLINE'},
+      {id:'mccoy',  name:'Leonard McCoy',    img:'Leonard%20McCoy.png',      faction:'fed',  fLabel:'Federation',  role:'SUPPORT', rating:'★★★★☆', desc:"Starfleet's finest physician. His medical expertise keeps crew combat-ready and morale at peak levels.",             tag1:'MEDICAL OFFICER — ACTIVE',  tag2:'CREW: STABLE'},
+      {id:'uhura',  name:'Nyota Uhura',      img:'Nyota%20Uhura.png',        faction:'fed',  fLabel:'Federation',  role:'INTEL',   rating:'★★★★☆', desc:'Chief communications officer. Her expertise in alien languages turns intelligence into a devastating tactical weapon.',  tag1:'COMMUNICATIONS: OPEN',      tag2:'SCANNING...'},
+      {id:'sulu',   name:'Hikaru Sulu',      img:'Hikaru%20Sulu.png',        faction:'fed',  fLabel:'Federation',  role:'PILOT',   rating:'★★★★☆', desc:'Helmsman of the Enterprise. Precision navigation and ship control that keeps your fleet one step ahead.',             tag1:'HELM: ENGAGED',             tag2:'WARP: READY'},
+      {id:'scotty', name:'Montgomery Scott', img:'Montgomery%20Scott.png',   faction:'fed',  fLabel:'Federation',  role:'ENGINEER',rating:'★★★★★', desc:"Miracle worker. Scotty can squeeze warp power from any ship and keep your fleet operational when it matters most.",    tag1:'ENGINEERING: ONLINE',       tag2:'DILITHIUM: 100%'},
+      {id:'chang',  name:'Chang',            img:'Chang.png',                faction:'kling',fLabel:'Klingon',     role:'ATTACK',  rating:'★★★★★', desc:'The ruthless Klingon general. A master of cloaked strikes who devastates enemy fleets before they know what hit them.',tag1:'KLINGON HIGH COUNCIL',      tag2:'CLOAKING: ONLINE'},
+      {id:'aztbur', name:'Azetbur',          img:'Azetbur.png',              faction:'kling',fLabel:'Klingon',     role:'COMMAND', rating:'★★★★☆', desc:"Chancellor of the Klingon High Council. Her political cunning and iron will fortify your alliance's dominance.",      tag1:'HIGH COUNCIL — CHANCELLOR', tag2:'BATTLE CRUISER: READY'},
+      {id:'koth',   name:'Koth',             img:'Koth.png',                 faction:'kling',fLabel:'Klingon',     role:'DEFENSE', rating:'★★★★☆', desc:'Veteran Klingon warrior. His defensive strategies hold the line when every other officer would retreat.',             tag1:'IKS BATTLE GROUP',          tag2:'SHIELDS: MAXIMUM'},
+      {id:'mral',   name:"M'Ral",            img:"M'Ral.png",                faction:'kling',fLabel:'Klingon',     role:'ATTACK',  rating:'★★★☆☆', desc:"A fierce Klingon officer with a talent for overwhelming firepower. Enemies fear the sound of his ship decloaking.",   tag1:'KLINGON DEFENCE FORCE',     tag2:'WEAPONS: ARMED'},
+      {id:'mara',   name:'Mara',             img:'Mara.png',                 faction:'kling',fLabel:'Klingon',     role:'INTEL',   rating:'★★★★☆', desc:'Intelligence officer and skilled scientist. Her analysis of enemy technology gives your fleet the decisive edge.',      tag1:'IMPERIAL INTELLIGENCE',     tag2:'SCANNING: ACTIVE'},
+      {id:'kumak',  name:'Kumak',            img:'Kumak.png',                faction:'kling',fLabel:'Klingon',     role:'ATTACK',  rating:'★★★☆☆', desc:'A battle-hardened Klingon warrior. His relentless assault style overwhelms enemy defenses through sheer ferocity.',   tag1:'KLINGON WARRIOR CASTE',     tag2:'TORPEDOES: LOADED'},
+      {id:'qaug',   name:"Qa'ug",            img:"Qa'ug.png",                faction:'kling',fLabel:'Klingon',     role:'SUPPORT', rating:'★★★☆☆', desc:'Support officer whose knowledge of Klingon ritual and combat traditions strengthens the entire crew.',                 tag1:'KLINGON HONOUR GUARD',      tag2:'MORALE: ELEVATED'},
+      {id:'yanagh', name:"Yan'agh",          img:"Yan'agh.png",              faction:'kling',fLabel:'Klingon',     role:'DEFENSE', rating:'★★★☆☆', desc:"A steadfast Klingon defender. Yan'agh turns the tide of prolonged engagements with unbreakable endurance.",            tag1:'IKS FORWARD SHIELD',        tag2:'HULL: REINFORCED'},
+      {id:'arix',   name:'Arix',             img:'Arix.png',                 faction:'rom',  fLabel:'Independent', role:'INTEL',   rating:'★★★★☆', desc:'A shadowy operative whose true allegiances remain unknown. His intelligence network spans every quadrant.',             tag1:'DEEP COVER — SECTOR UNKNOWN',tag2:'SIGNAL: ENCRYPTED'},
+      {id:'arkady', name:'Arkady Ivanov',    img:'Arkady%20Ivanov.png',      faction:'rom',  fLabel:'Independent', role:'COMMAND', rating:'★★★★☆', desc:'A charismatic commander who excels at building alliances and turning the political landscape in his favor.',             tag1:'FEDERATION ATTACHÉ',        tag2:'DIPLOMACY: ACTIVE'},
+      {id:'javaid', name:'Javaid',           img:'Javaid.png',               faction:'rom',  fLabel:'Independent', role:'SCIENCE', rating:'★★★☆☆', desc:"A brilliant scientist whose unconventional research unlocks technologies other officers cannot comprehend.",             tag1:'RESEARCH LAB — ONLINE',     tag2:'ANALYSIS: RUNNING'},
+      {id:'lnar',   name:"L'Nar",            img:"L'Nar.png",                faction:'rom',  fLabel:'Independent', role:'ATTACK',  rating:'★★★★☆', desc:'A lethal hunter who tracks and eliminates high-value targets with cold, calculated precision.',                         tag1:'HUNTER-CLASS OPERATIVE',    tag2:'TARGET: ACQUIRED'},
+      {id:'vella',  name:'Vella',            img:'Vella.png',                faction:'rom',  fLabel:'Independent', role:'SUPPORT', rating:'★★★★☆', desc:'A resourceful and adaptable officer. Her versatility makes her indispensable in any fleet composition.',                tag1:'MULTI-FACTION CLEARANCE',   tag2:'STANDING BY...'}
+    ];
 
-  <!-- THUMBNAIL STRIP -->
-  <div class="strip-wrap">
-    <div class="strip-label">— Select Your Officer —</div>
-    <div class="strip" id="strip"></div>
-    <div class="progress-bar-wrap">
-      <div class="progress-bar" id="progressBar"></div>
-    </div>
-  </div>
+    var BASE = 'https://startrikcommand.gamezof.com/Characters/';
+    var FC = { fed:'#00c8ff', kling:'#ff4422', rom:'#22ffaa' };
+    var FA = { fed:'rgba(0,200,255,0.08)', kling:'rgba(255,68,34,0.07)', rom:'rgba(34,255,170,0.07)' };
 
-</div>
+    /* ── AFFILIATE ── */
+    var DEST = 'https://to.wendiro.com/u?k=7d08dc16f674423b984ae4ca4b188d8a&via=15055';
+    var PARAMS = ['clickid','utm_source','utm_medium','utm_campaign','utm_content'];
+    function buildUrl(){
+      var url=new URL(DEST); var q=new URLSearchParams(window.location.search);
+      PARAMS.forEach(function(p){if(q.get(p))url.searchParams.set(p,q.get(p));});
+      return url.toString();
+    }
+    function go(){ window.location.href=buildUrl(); }
+    document.getElementById('mainCta').addEventListener('click', go);
 
-<script>
-(function(){
+    /* ── STARDATE ── */
+    (function(){
+      var now=new Date();
+      var sd=(2400+(now.getFullYear()-2024)*10+((now.getMonth()*30+now.getDate())/36.5)).toFixed(1);
+      document.getElementById('stardate').textContent='STARDATE '+sd+' — OFFICER SELECTION';
+    })();
 
-  /* ─── CHARACTER DATA ─── */
-  var CHARS = [
-    { id:'kirk',    name:'James T. Kirk',    img:'James%20T.%20Kirk%20.png', faction:'fed',   fLabel:'Federation',   role:'ATTACK',  rating:'★★★★★', desc:'The legendary captain of the USS Enterprise. Unmatched tactical genius and inspiring leadership under fire.',         tag1:'USS ENTERPRISE NCC-1701',    tag2:'COMMAND: ACTIVE' },
-    { id:'spock',   name:'Spock',            img:'Spock.png',                faction:'fed',   fLabel:'Federation',   role:'SCIENCE', rating:'★★★★★', desc:'First officer and science officer. His logic and analytical mind provide decisive advantage in any engagement.',       tag1:'VULCAN SCIENCE ACADEMY',     tag2:'SHIELDS: ONLINE' },
-    { id:'mccoy',   name:'Leonard McCoy',    img:'Leonard%20McCoy.png',      faction:'fed',   fLabel:'Federation',   role:'SUPPORT', rating:'★★★★☆', desc:"Starfleet's finest physician. His medical expertise keeps crew combat-ready and morale at peak levels.",             tag1:'MEDICAL OFFICER — ACTIVE',   tag2:'CREW: STABLE' },
-    { id:'uhura',   name:'Nyota Uhura',      img:'Nyota%20Uhura.png',        faction:'fed',   fLabel:'Federation',   role:'INTEL',   rating:'★★★★☆', desc:'Chief communications officer. Her expertise in alien languages turns intelligence into a devastating tactical weapon.',  tag1:'COMMUNICATIONS: OPEN',       tag2:'SCANNING...' },
-    { id:'sulu',    name:'Hikaru Sulu',      img:'Hikaru%20Sulu.png',        faction:'fed',   fLabel:'Federation',   role:'PILOT',   rating:'★★★★☆', desc:'Helmsman of the Enterprise. Precision navigation and ship control that keeps your fleet one step ahead of the enemy.', tag1:'HELM: ENGAGED',              tag2:'WARP: READY' },
-    { id:'scotty',  name:'Montgomery Scott', img:'Montgomery%20Scott.png',   faction:'fed',   fLabel:'Federation',   role:'ENGINEER',rating:'★★★★★', desc:"Miracle worker. Scotty can squeeze warp power from any ship and keep your fleet operational when it matters most.",    tag1:'ENGINEERING: ONLINE',        tag2:'DILITHIUM: 100%' },
-    { id:'chang',   name:'Chang',            img:'Chang.png',                faction:'kling', fLabel:'Klingon',      role:'ATTACK',  rating:'★★★★★', desc:'The ruthless Klingon general. A master of cloaked strikes who devastates enemy fleets before they know what hit them.',tag1:"KLINGON HIGH COUNCIL",       tag2:'CLOAKING: ONLINE' },
-    { id:'azetbur', name:'Azetbur',          img:'Azetbur.png',              faction:'kling', fLabel:'Klingon',      role:'COMMAND', rating:'★★★★☆', desc:"Chancellor of the Klingon High Council. Her political cunning and iron will fortify your alliance's dominance.",      tag1:'HIGH COUNCIL — CHANCELLOR',  tag2:'BATTLE CRUISER: READY' },
-    { id:'koth',    name:'Koth',             img:'Koth.png',                 faction:'kling', fLabel:'Klingon',      role:'DEFENSE', rating:'★★★★☆', desc:'Veteran Klingon warrior and tactician. His defensive strategies hold the line when every other officer would retreat.', tag1:'IKS BATTLE GROUP',           tag2:'SHIELDS: MAXIMUM' },
-    { id:'mral',    name:"M'Ral",            img:"M'Ral.png",                faction:'kling', fLabel:'Klingon',      role:'ATTACK',  rating:'★★★☆☆', desc:"A fierce Klingon officer with a talent for overwhelming firepower. Enemies fear the sound of his ship decloaking.",   tag1:'KLINGON DEFENCE FORCE',      tag2:'WEAPONS: ARMED' },
-    { id:'mara',    name:'Mara',             img:'Mara.png',                 faction:'kling', fLabel:'Klingon',      role:'INTEL',   rating:'★★★★☆', desc:'Intelligence officer and skilled scientist. Her analysis of enemy technology gives your fleet the decisive edge.',      tag1:'IMPERIAL INTELLIGENCE',      tag2:'SCANNING: ACTIVE' },
-    { id:'kumak',   name:'Kumak',            img:'Kumak.png',                faction:'kling', fLabel:'Klingon',      role:'ATTACK',  rating:'★★★☆☆', desc:'A battle-hardened Klingon warrior. His relentless assault style overwhelms enemy defenses through sheer ferocity.',   tag1:'KLINGON WARRIOR CASTE',      tag2:'TORPEDOES: LOADED' },
-    { id:'qaug',    name:"Qa'ug",            img:"Qa'ug.png",                faction:'kling', fLabel:'Klingon',      role:'SUPPORT', rating:'★★★☆☆', desc:'Support officer whose knowledge of Klingon ritual and combat traditions strengthens the entire crew around him.',       tag1:'KLINGON HONOUR GUARD',       tag2:'MORALE: ELEVATED' },
-    { id:'yanagh',  name:"Yan'agh",          img:"Yan'agh.png",              faction:'kling', fLabel:'Klingon',      role:'DEFENSE', rating:'★★★☆☆', desc:"A steadfast Klingon defender. Yan'agh turns the tide of prolonged engagements with unbreakable endurance.",            tag1:'IKS FORWARD SHIELD',         tag2:'HULL: REINFORCED' },
-    { id:'arix',    name:'Arix',             img:'Arix.png',                 faction:'rom',   fLabel:'Independent',  role:'INTEL',   rating:'★★★★☆', desc:'A shadowy operative whose true allegiances remain unknown. His intelligence network spans every quadrant of the galaxy.',tag1:'DEEP COVER — SECTOR UNKNOWN',tag2:'SIGNAL: ENCRYPTED' },
-    { id:'arkady',  name:'Arkady Ivanov',    img:'Arkady%20Ivanov.png',      faction:'rom',   fLabel:'Independent',  role:'COMMAND', rating:'★★★★☆', desc:'A charismatic commander who excels at building alliances and turning the political landscape of the quadrant in his favor.',tag1:'FEDERATION ATTACHÉ',        tag2:'DIPLOMACY: ACTIVE' },
-    { id:'javaid',  name:'Javaid',           img:'Javaid.png',               faction:'rom',   fLabel:'Independent',  role:'SCIENCE', rating:'★★★☆☆', desc:'A brilliant scientist whose unconventional research unlocks technologies other officers cannot even comprehend.',        tag1:'RESEARCH LAB — ONLINE',      tag2:'ANALYSIS: RUNNING' },
-    { id:'lnar',    name:"L'Nar",            img:"L'Nar.png",                faction:'rom',   fLabel:'Independent',  role:'ATTACK',  rating:'★★★★☆', desc:'A lethal hunter who tracks and eliminates high-value targets across the galaxy with cold, calculated precision.',       tag1:'HUNTER-CLASS OPERATIVE',     tag2:'TARGET: ACQUIRED' },
-    { id:'vella',   name:'Vella',            img:'Vella.png',                faction:'rom',   fLabel:'Independent',  role:'SUPPORT', rating:'★★★★☆', desc:'A resourceful and adaptable officer. Her versatility and quick thinking make her indispensable in any fleet composition.',tag1:'MULTI-FACTION CLEARANCE',   tag2:'STANDING BY...' }
-  ];
-
-  var BASE_IMG = 'https://startrikcommand.gamezof.com/Characters/';
-
-  var FACTION_COLORS = { fed:'#00c8ff', kling:'#ff4422', rom:'#22ffaa' };
-
-  /* ─── AFFILIATE ─── */
-  var DEST = 'https://to.wendiro.com/u?k=7d08dc16f674423b984ae4ca4b188d8a&via=15055';
-  var PARAMS = ['clickid','utm_source','utm_medium','utm_campaign','utm_content'];
-  function buildUrl(){
-    var url = new URL(DEST);
-    var q = new URLSearchParams(window.location.search);
-    PARAMS.forEach(function(p){ if(q.get(p)) url.searchParams.set(p, q.get(p)); });
-    return url.toString();
-  }
-  function go(){ window.location.href = buildUrl(); }
-  document.getElementById('hdrCta').addEventListener('click', go);
-  document.getElementById('mainCta').addEventListener('click', go);
-
-  /* ─── BUILD THUMBNAIL STRIP ─── */
-  var strip = document.getElementById('strip');
-  CHARS.forEach(function(c, i){
-    var div = document.createElement('div');
-    div.className = 'thumb' + (i===0?' active':'');
-    div.dataset.f = c.faction;
-    div.dataset.i = i;
-    var img = document.createElement('img');
-    img.src = BASE_IMG + c.img;
-    img.alt = c.name;
-    img.onerror = function(){ this.style.opacity='0'; };
-    var bar = document.createElement('div');
-    bar.className = 'thumb-bar';
-    var nm = document.createElement('div');
-    nm.className = 'thumb-name';
-    nm.textContent = c.name.split(' ')[0];
-    div.appendChild(img);
-    div.appendChild(bar);
-    div.appendChild(nm);
-    div.addEventListener('click', function(){
-      selectChar(parseInt(this.dataset.i));
-      resetTimer();
+    /* ── BUILD STRIP ── */
+    var strip=document.getElementById('strip');
+    CHARS.forEach(function(c,i){
+      var d=document.createElement('div');
+      d.className='thumb'+(i===0?' active':'');
+      d.dataset.f=c.faction; d.dataset.i=i;
+      var img=document.createElement('img');
+      img.src=BASE+c.img; img.alt=c.name;
+      img.onerror=function(){this.style.opacity='0';};
+      var bar=document.createElement('div'); bar.className='thumb-bar';
+      var nm=document.createElement('div'); nm.className='thumb-name';
+      nm.textContent=c.name.split(' ')[0];
+      d.appendChild(img); d.appendChild(bar); d.appendChild(nm);
+      d.addEventListener('click',function(){ selectChar(parseInt(this.dataset.i)); resetTimer(); });
+      strip.appendChild(d);
     });
-    strip.appendChild(div);
-  });
 
-  /* ─── SELECT CHARACTER ─── */
-  var current = 0;
-  var spotImg = document.getElementById('spotImg');
+    /* ── SELECT CHARACTER ── */
+    var current=0;
+    var spotImg=document.getElementById('spotImg');
 
-  function selectChar(idx){
-    if(idx === current) return;
-    current = idx;
-    var c = CHARS[idx];
-    var col = FACTION_COLORS[c.faction];
+    function setColor(col, ambientBg){
+      document.documentElement.style.setProperty('--accent', col);
+      document.getElementById('ambient').style.background =
+        'radial-gradient(ellipse 80% 60% at 60% 80%, '+ambientBg+' 0%, transparent 70%)';
 
-    /* Fade spotlight image */
-    spotImg.classList.add('fade-out');
-    setTimeout(function(){
-      spotImg.src = BASE_IMG + c.img;
-      spotImg.alt = c.name;
-      spotImg.classList.remove('fade-out');
-    }, 250);
+      /* update all amber-dependent elements */
+      ['spTL','spTR','spBL'].forEach(function(id){
+        var el=document.getElementById(id);
+        if(el){ el.style.borderColor=col; }
+      });
+      var spAngle=document.getElementById('spAngle');
+      if(spAngle){ spAngle.style.borderColor=col; spAngle.style.background='rgba('+hexToRgb(col)+',0.1)'; }
+      var bl=document.getElementById('spBarL');
+      if(bl){ bl.style.background='linear-gradient(to bottom,transparent,'+col+',transparent)'; bl.style.boxShadow='0 0 10px '+col; }
+      var glow=document.getElementById('spGlow');
+      if(glow){ glow.style.background='linear-gradient(to right,transparent,'+col+',transparent)'; glow.style.boxShadow='0 0 18px '+col; }
+      var scan=document.getElementById('spScan');
+      if(scan){ scan.style.background='linear-gradient(to right,transparent,'+col+',transparent)'; }
+      var wrap=document.getElementById('spWrap');
+      if(wrap){ wrap.style.borderColor='rgba('+hexToRgb(col)+',0.3)'; }
+      var en=document.getElementById('spEnergy');
+      if(en){ en.style.background='radial-gradient(ellipse at 50% 100%,'+col+' 0%,transparent 60%)'; }
 
-    /* Update text panel */
-    document.getElementById('officerFaction').textContent = c.fLabel.toUpperCase();
-    document.getElementById('officerName').textContent = c.name.toUpperCase();
-    document.getElementById('officerDesc').textContent = c.desc;
-    document.getElementById('stat1Val').textContent = c.rating;
-    document.getElementById('stat2Val').textContent = c.role;
-    document.getElementById('stat3Val').textContent = c.faction.toUpperCase().slice(0,3);
+      var oPanel=document.getElementById('officerPanel');
+      if(oPanel){ oPanel.style.borderLeftColor=col; }
+      document.getElementById('oFaction').style.color=col;
+      document.getElementById('oName').style.textShadow='0 0 20px '+col;
+      ['oRating','oRole','oFact'].forEach(function(id){ document.getElementById(id).style.color=col; });
 
-    /* HUD tags */
-    document.getElementById('spTag1').textContent = c.tag1;
-    document.getElementById('spTag2').textContent = c.tag2;
+      var lcPill=document.getElementById('lcPill');
+      var lcBar=document.getElementById('lcBar');
+      if(lcPill) lcPill.style.background=col;
+      if(lcBar)  lcBar.style.background='rgba('+hexToRgb(col)+',0.4)';
 
-    /* Faction color cascade */
-    document.documentElement.style.setProperty('--accent', col);
+      var titleEm=document.getElementById('titleEm');
+      if(titleEm){ titleEm.style.color=col; titleEm.style.textShadow='0 0 20px '+col; }
 
-    /* Update HUD corners / bars color */
-    ['spTL','spTR','spBL','spBR'].forEach(function(id){
-      var el = document.getElementById(id);
-      if(el){
-        el.style.borderColor = col;
+      /* update tag dots */
+      document.querySelectorAll('.sp-tag').forEach(function(t){
+        t.style.color='rgba('+hexToRgb(col)+',0.6)';
+      });
+
+      /* hud-dot */
+      var hudDot=document.querySelector('.hud-dot');
+      if(hudDot){ hudDot.style.background=col; hudDot.style.boxShadow='0 0 8px '+col; }
+
+      /* main-cta border */
+      var cta=document.getElementById('mainCta');
+      if(cta){ cta.style.borderColor=col; cta.style.color=col; }
+    }
+
+    function hexToRgb(hex){
+      var r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+      return r+','+g+','+b;
+    }
+
+    function selectChar(idx){
+      if(idx===current) return;
+      current=idx;
+      var c=CHARS[idx];
+      var col=FC[c.faction]||'#f0a020';
+      var amb=FA[c.faction]||'rgba(240,160,32,0.07)';
+
+      spotImg.classList.add('fade-out');
+      setTimeout(function(){
+        spotImg.src=BASE+c.img; spotImg.alt=c.name;
+        spotImg.classList.remove('fade-out');
+      }, 230);
+
+      document.getElementById('oFaction').textContent=c.fLabel.toUpperCase();
+      document.getElementById('oName').textContent=c.name.toUpperCase();
+      document.getElementById('oDesc').textContent=c.desc;
+      document.getElementById('oRating').textContent=c.rating;
+      document.getElementById('oRole').textContent=c.role;
+      document.getElementById('oFact').textContent=c.faction.toUpperCase().slice(0,3);
+      document.getElementById('spT1').textContent=c.tag1;
+      document.getElementById('spT2').textContent=c.tag2;
+
+      setColor(col, amb);
+
+      document.querySelectorAll('.thumb').forEach(function(t,i){
+        t.classList.toggle('active', i===idx);
+      });
+      var thumbs=document.querySelectorAll('.thumb');
+      if(thumbs[idx]) thumbs[idx].scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+    }
+
+    /* ── AUTO-ADVANCE ── */
+    var INTERVAL=4000;
+    var timer, progAnim;
+    var pb=document.getElementById('progressBar');
+
+    function startProgress(){
+      pb.style.transition='none'; pb.style.width='0%';
+      clearTimeout(progAnim);
+      progAnim=setTimeout(function(){
+        pb.style.transition='width '+INTERVAL+'ms linear';
+        pb.style.width='100%';
+      }, 40);
+    }
+    function next(){ selectChar((current+1)%CHARS.length); startProgress(); }
+    function resetTimer(){ clearInterval(timer); startProgress(); timer=setInterval(next,INTERVAL); }
+    resetTimer();
+
+    /* ── VIDEO FALLBACK ── */
+    var v=document.getElementById('bgVideo');
+    if(v) v.addEventListener('error',function(){
+      document.querySelector('.vbg').style.background='radial-gradient(ellipse at 50% 0%,#001030 0%,#02040e 60%)';
+      v.style.display='none';
+    });
+
+    /* ── WARP STARFIELD ── */
+    var canvas=document.getElementById('stars');
+    var ctx=canvas.getContext('2d');
+    var W,H,stars=[],shooters=[],streaks=[];
+
+    function resize(){ W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight; }
+    resize(); window.addEventListener('resize',resize);
+
+    for(var i=0;i<300;i++){
+      stars.push({
+        x:Math.random()*window.innerWidth, y:Math.random()*window.innerHeight,
+        r:Math.random()*1.3+0.2, a:Math.random()*0.6+0.2,
+        phase:Math.random()*Math.PI*2, speed:Math.random()*0.015+0.003
+      });
+    }
+
+    function spawnStreak(){
+      streaks.push({
+        x:Math.random()*W*0.5+W*0.25, y:Math.random()*H,
+        len:Math.random()*90+30,
+        vx:Math.random()*3+2.5, vy:(Math.random()-0.5)*1.2,
+        life:1, decay:0.022+Math.random()*0.018,
+        amber:Math.random()>0.5
+      });
+    }
+    function spawnShot(){
+      shooters.push({x:Math.random()*W,y:Math.random()*H*0.4,vx:3+Math.random()*5,vy:1+Math.random()*2,life:45,max:45});
+    }
+
+    var t=0;
+    (function loop(){
+      ctx.clearRect(0,0,W,H); t+=0.008;
+      stars.forEach(function(s){
+        var a=s.a*(0.55+0.45*Math.sin(t*s.speed*60+s.phase));
+        ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+        ctx.fillStyle='rgba(255,255,255,'+a+')'; ctx.fill();
+      });
+      if(Math.random()<0.018) spawnStreak();
+      for(var i=streaks.length-1;i>=0;i--){
+        var s=streaks[i]; s.life-=s.decay;
+        if(s.life<=0){streaks.splice(i,1);continue;}
+        ctx.beginPath(); ctx.moveTo(s.x,s.y);
+        ctx.lineTo(s.x-s.vx*s.len/8, s.y-s.vy*s.len/8);
+        ctx.strokeStyle=s.amber?'rgba(240,160,32,'+(s.life*0.55)+')':'rgba(0,200,255,'+(s.life*0.45)+')';
+        ctx.lineWidth=Math.random()*1.5+0.3; ctx.stroke();
+        s.x+=s.vx*0.7; s.y+=s.vy*0.7;
+        if(s.x>W+60||s.x<-60) streaks.splice(i,1);
       }
-    });
-    var barL = document.getElementById('spBarL');
-    if(barL){
-      barL.style.background = 'linear-gradient(to bottom, transparent, ' + col + ', transparent)';
-      barL.style.boxShadow = '0 0 10px ' + col;
-    }
-    var glow = document.getElementById('spGlow');
-    if(glow){
-      glow.style.background = 'linear-gradient(to right, transparent, ' + col + ', transparent)';
-      glow.style.boxShadow = '0 0 20px ' + col;
-    }
+      if(Math.random()<0.003) spawnShot();
+      shooters.forEach(function(s,i){
+        s.x+=s.vx; s.y+=s.vy; s.life--;
+        var a=s.life/s.max*0.65;
+        ctx.beginPath(); ctx.moveTo(s.x,s.y);
+        ctx.lineTo(s.x-s.vx*9,s.y-s.vy*9);
+        ctx.strokeStyle='rgba(0,200,255,'+a+')'; ctx.lineWidth=1; ctx.stroke();
+        if(s.life<=0) shooters.splice(i,1);
+      });
+      requestAnimationFrame(loop);
+    })();
 
-    /* Officer panel border */
-    document.getElementById('officerPanel').style.borderLeftColor = col;
-    document.getElementById('officerFaction').style.color = col;
-    document.getElementById('officerName').style.textShadow = '0 0 20px ' + col;
+  })();
+  </script>
 
-    /* Stat chip values color */
-    ['stat1Val','stat2Val','stat3Val'].forEach(function(id){
-      document.getElementById(id).style.color = col;
-    });
-
-    /* Thumbnail active state */
-    document.querySelectorAll('.thumb').forEach(function(t,i){
-      t.classList.toggle('active', i === idx);
-    });
-
-    /* Scroll thumb into view */
-    var thumbs = document.querySelectorAll('.thumb');
-    if(thumbs[idx]){
-      thumbs[idx].scrollIntoView({behavior:'smooth', block:'nearest', inline:'center'});
-    }
-  }
-
-  /* ─── AUTO-ADVANCE ─── */
-  var INTERVAL = 4000;
-  var timer, progAnim;
-  var progressBar = document.getElementById('progressBar');
-
-  function startProgress(){
-    progressBar.style.transition = 'none';
-    progressBar.style.width = '0%';
-    clearTimeout(progAnim);
-    progAnim = setTimeout(function(){
-      progressBar.style.transition = 'width ' + INTERVAL + 'ms linear';
-      progressBar.style.width = '100%';
-    }, 40);
-  }
-
-  function next(){
-    var n = (current + 1) % CHARS.length;
-    selectChar(n);
-    startProgress();
-  }
-
-  function resetTimer(){
-    clearInterval(timer);
-    startProgress();
-    timer = setInterval(next, INTERVAL);
-  }
-
-  resetTimer();
-
-  /* ─── VIDEO FALLBACK ─── */
-  var v = document.getElementById('bgVideo');
-  if(v) v.addEventListener('error', function(){
-    document.querySelector('.vbg').style.background =
-      'radial-gradient(ellipse at 50% 0%, #001030 0%, #02040e 60%)';
-    v.style.display = 'none';
-  });
-
-  /* ─── STAR FIELD ─── */
-  var canvas = document.getElementById('stars');
-  var ctx = canvas.getContext('2d');
-  var W, H, stars = [], shooters = [];
-
-  function resize(){
-    W = canvas.width = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-  }
-  resize();
-  window.addEventListener('resize', resize);
-
-  for(var i=0; i<300; i++){
-    stars.push({
-      x:Math.random()*window.innerWidth,
-      y:Math.random()*window.innerHeight,
-      r:Math.random()*1.3+0.2,
-      a:Math.random()*.6+.2,
-      phase:Math.random()*Math.PI*2,
-      speed:Math.random()*.015+.003
-    });
-  }
-
-  var t=0;
-  function drawStars(){
-    ctx.clearRect(0,0,W,H);
-    t+=0.008;
-    stars.forEach(function(s){
-      var alpha = s.a*(0.6+0.4*Math.sin(t*s.speed*60+s.phase));
-      ctx.beginPath();
-      ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-      ctx.fillStyle='rgba(255,255,255,'+alpha+')';
-      ctx.fill();
-    });
-    if(Math.random()<0.004) shooters.push({
-      x:Math.random()*W, y:Math.random()*H*.4,
-      vx:3+Math.random()*4, vy:1+Math.random()*2,
-      life:40, maxLife:40
-    });
-    shooters.forEach(function(s,i){
-      s.x+=s.vx; s.y+=s.vy; s.life--;
-      var a=s.life/s.maxLife;
-      ctx.beginPath();
-      ctx.moveTo(s.x,s.y);
-      ctx.lineTo(s.x-s.vx*8,s.y-s.vy*8);
-      ctx.strokeStyle='rgba(0,200,255,'+(a*.6)+')';
-      ctx.lineWidth=1;
-      ctx.stroke();
-      if(s.life<=0) shooters.splice(i,1);
-    });
-    requestAnimationFrame(drawStars);
-  }
-  drawStars();
-
-})();
-</script>
 </body>
 </html>
